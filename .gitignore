@@ -1,0 +1,4 @@
+### Git Ignore files ###
+
+# 1. Ignore all text files 
+*.txt

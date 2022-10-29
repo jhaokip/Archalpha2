@@ -3,13 +3,13 @@
 #  EXPECTATIONS:
 #  EFI_DISK, SWAP_DISK, ROOT_DISK and HOME_DISK : PARTITION DEVICE PATH/NAME
 #  EFI_SIZE, SWAP_SIZE, ROOT_SIZE and HOME_SIZE : PARTITION SIZES
-#  
+############  
 source cosmetics
 
 function clean_install () {
 
 	## Warn user about deletion of existing partition disk.
-	input_print "This will delete the current partition table on $DISK once installation starts. Backup important data. Do you with to continue [y/N]: "
+	input_print "This will delete the current partition table on $DISK once installation starts. Backup important data. Do you wish to continue [y/N]: "
 	read -r disk_response
 	if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
 		error_print "Quitting Arch Install Script...."
@@ -84,3 +84,4 @@ function clean_install () {
 
     # ################### FORMATTING PARTITIONING FINISHED #####################
 }
+# End of file
