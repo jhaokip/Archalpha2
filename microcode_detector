@@ -1,0 +1,17 @@
+################### MICROCODE DETECTOR ###########################
+source cosmetics
+
+function microcode_detector () {
+
+	CPU=$(grep vendor_id /proc/cpuinfo)
+    if [[ "$CPU" == *"AuthenticAMD"* ]]; then
+        info_print "An AMD CPU has been detected, the AMD microcode will be installed."
+        microcode="amd-ucode"
+    else
+        info_print "An Intel CPU has been detected, the Intel microcode will be installed."
+        microcode="intel-ucode"
+    fi
+}
+
+
+

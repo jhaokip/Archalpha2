@@ -1,0 +1,23 @@
+################## ROOT & PASSWORD SELECTOR ##############################
+source cosmetics
+
+function rootpass_selector () {
+
+	input_print "Please enter a password for the root user (you're not going to see it): "
+    read -r -s rootpass
+    if [[ -z "$rootpass" ]]; then
+        echo
+        error_print "You need to enter a password for the root user, please try again."
+        return 1
+    fi
+    echo
+    input_print "Please enter the password again (you're not going to see it): "
+    read -r -s rootpass2
+    echo
+    if [[ "$rootpass" != "$rootpass2" ]]; then
+        error_print "Passwords don't match, please try again."
+        return 1
+    fi
+    return 0
+}
+

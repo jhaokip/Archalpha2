@@ -1,0 +1,86 @@
+################### CLEAN INSTALL: PARTITION AND FORMATTING (function) ###################
+#
+#  EXPECTATIONS:
+#  EFI_DISK, SWAP_DISK, ROOT_DISK and HOME_DISK : PARTITION DEVICE PATH/NAME
+#  EFI_SIZE, SWAP_SIZE, ROOT_SIZE and HOME_SIZE : PARTITION SIZES
+#  
+source cosmetics
+
+function clean_install () {
+
+	## Warn user about deletion of existing partition disk.
+	input_print "This will delete the current partition table on $DISK once installation starts. Backup important data. Do you with to continue [y/N]: "
+	read -r disk_response
+	if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
+		error_print "Quitting Arch Install Script...."
+		exit
+	fi
+
+	
+    DISK_SIZE=disk_space_G ## assign total disk space size to DISK_SIZE
+    M="M"
+    G="G"
+    one="1"
+    two="2"
+    three="3"
+    four="4"
+    EFI_DISK=$DISK$one
+    SWAP_DISK=$DISK$two
+    ROOT_DISK=$DISK$three
+    HOME_DISK=$DISK$four
+
+
+    if (( $DISK_SIZE >= 30 && $DISK_SIZE < 50 )); then SWAP_ROOT="2G 16G";   fi
+    if (( $DISK_SIZE >= 50 && $DISK_SIZE < 70 )); then SWAP_ROOT="4G 20G";   fi
+    if (( $DISK_SIZE >= 70 && $DISK_SIZE < 100 )); then SWAP_ROOT="4G 25G";   fi
+    if (( $DISK_SIZE >= 100 && $DISK_SIZE < 130 )); then SWAP_ROOT="8G 40G";   fi
+    if (( $DISK_SIZE >= 130 && $DISK_SIZE < 160 )); then SWAP_ROOT="8G 45G";   fi
+    if (( $DISK_SIZE >= 160 && $DISK_SIZE < 190 )); then SWAP_ROOT="8G 50G";   fi
+    if (( $DISK_SIZE >= 190 && $DISK_SIZE < 220 )); then SWAP_ROOT="8G 55G";   fi
+    if (( $DISK_SIZE >= 220 && $DISK_SIZE < 250 )); then SWAP_ROOT="8G 60G";   fi
+    if (( $DISK_SIZE >= 250 && $DISK_SIZE < 280 )); then SWAP_ROOT="8G 65G";   fi
+    if (( $DISK_SIZE >= 280 && $DISK_SIZE < 310 )); then SWAP_ROOT="8G 70G";   fi
+    if (( $DISK_SIZE >= 310 && $DISK_SIZE < 340 )); then SWAP_ROOT="8G 75G";   fi
+    if (( $DISK_SIZE >= 340 )); then SWAP_ROOT="8G 80G";   fi
+   
+    EFI_SIZE=512
+    SWAP_SIZE=$(echo $SWAP_ROOT | sed 's/G//g' | awk ' {print $1}')
+    ROOT_SIZE=$(echo $SWAP_ROOT | sed 's/G//g' | awk ' {print $2}')
+    HOME_SIZE=0
+
+
+    info_print "WIPING $DISK ...., please wait"
+    
+    ## Wipe all existing partitions on the installation disk
+    sudo wipefs --all $DISK &>/dev/null
+   
+	# create gpt label on newly created disk
+	sudo sgdisk -o $DISK &>/dev/null
+ 
+    ## Create necessary partitions using sgdisk 
+    sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
+
+
+	## Informing the Kernel of the changes
+	info_print "Informing the Kernel about the disk changes."
+	partprobe "$DISK"
+    
+   #################### DISK PARTITIONING FINISHED ###########################
+    
+    ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+    sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
+    #
+    # Format SWAP Partition with filesystem label Arch-SWAP
+    sudo mkswap -L Arch-SWAP $SWAP_DISK
+    #
+    # Format ROOT Partition with filesystem label Arch-ROOT
+    sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
+    #
+    # Format HOME Partition with filesystem label Arch-HOME
+    sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
+    #
+    sudo sgdisk -p $DISK
+	sleep 4
+
+    # ################### FORMATTING PARTITIONING FINISHED #####################
+}

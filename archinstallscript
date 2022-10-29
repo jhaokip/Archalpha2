@@ -1,0 +1,246 @@
+#!/bin/bash
+
+# Cleaning the TTY.
+clear
+
+source cosmetics
+source keyboard_selector
+source check_internet
+source update_mirrors
+source edit_pacman
+source choose_install_disk
+source install_scheme_selector
+source clean_install
+source automatic_install
+source manual_install
+source kernel_selector
+source network_selector
+source microcode_detector
+source locale_selector
+source hostname_selector
+source userpass_selector
+source rootpass_selector
+source create_subvolumes
+source mount_and_create_mountpoints
+source mount_subvolumes_partitions
+source virt_check
+
+
+cosmetics
+
+
+# Welcome screen.
+echo -ne "${BOLD}${BYELLOW}
+======================================================================
+███████╗ █████╗ ███████╗██╗   ██╗      █████╗ ██████╗  ██████╗██╗  ██╗
+██╔════╝██╔══██╗██╔════╝╚██╗ ██╔╝     ██╔══██╗██╔══██╗██╔════╝██║  ██║
+█████╗  ███████║███████╗ ╚████╔╝█████╗███████║██████╔╝██║     ███████║
+██╔══╝  ██╔══██║╚════██║  ╚██╔╝ ╚════╝██╔══██║██╔══██╗██║     ██╔══██║
+███████╗██║  ██║███████║   ██║        ██║  ██║██║  ██║╚██████╗██║  ██║
+╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝        ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+======================================================================
+${RESET}"
+info_print "Welcome to easy-arch, a script made in order to simplify the process of installing Arch Linux."
+
+## Setting up keyboard layout.
+until keyboard_selector; do : ; done
+
+## Check network connection
+check_internet
+
+## Update pacman mirrors
+update_mirrors
+
+## Edit pacman.conf
+edit_pacman
+
+## Synchronize Arch Repos
+info_print "Synchronizing pacman repositories..."
+pacman -Syy
+
+## Set timedatectl
+timedatectl set-ntp true
+ 
+## Choosing the target disk for installation
+choose_install_disk
+
+## Installation and Partition Scheme
+until install_scheme_selector; do : ; done
+
+## Actual partition
+   case $install_choice in
+      1)  clean_install
+          ;;
+      2)  automatic_install
+          ;;
+      3)  manual_install
+          ;;
+   esac
+
+## Setting up the kernel.
+until kernel_selector; do : ; done
+clear
+
+## User choses the network.
+until network_selector; do : ; done
+clear
+
+## Checking which microcode to install
+microcode_detector
+clear
+
+## User choses the locale.
+until locale_selector; do : ; done
+clear
+
+# User choses the hostname.
+until hostname_selector; do : ; done
+clear
+
+# Ask user for the user/root passwords.
+until userpass_selector; do : ; done
+clear
+
+until rootpass_selector; do : ; done
+clear
+
+############### Get UUID's of EFI, SWAP, ROOT and HOME partitions #############
+EFI_UUID=$(lsblk -o UUID $EFI_DISK | grep -v UUID)
+SWAP_UUID=$(lsblk -o UUID $SWAP_DISK | grep -v UUID)
+ROOT_UUID=$(lsblk -o UUID $ROOT_DISK | grep -v UUID)
+HOME_UUID=$(lsblk -o UUID $HOME_DISK | grep -v UUID)
+
+if [ -e UUID.txt ]; then rm UUID.txt; fi
+echo "efi_uuid=$EFI_UUID" >> UUID.txt 
+echo "swap_uuid=$SWAP_UUID" >> UUID.txt
+echo "root_uuid=$ROOT_UUID" >> UUID.txt
+echo "home_uuid=$HOME_UUID" >> UUID.txt
+info_print "Exiting to check disk partitions!"
+sleep 5
+exit
+
+##################### Create Subvolumes ################
+create_subvolumes
+
+##################### Mount and Create Mountpoints for Subvolume #################
+mount_and_create_mountpoints
+
+##################### Mount the Subvolumes and Partitions
+mount_subvolumes_partitions
+
+info_print "Exiting temporarily to check disk partitions and formatting!"
+sleep 5
+exit
+
+##################### pacstrap Installation #####################
+## Install base packages + networking here (except maybe DE's/WM's).  
+#
+ 
+Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac curl wget dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
+pacstrap /mnt $Base_Packages
+
+#################################################################
+## Virtualization check (must come afer pacstrap /mnt)
+virt_check
+
+###################### Generate fstab and Edit fstab ##########################
+# Generate_fstab
+
+genfstab -U /mnt >> /mnt/etc/fstab
+
+### Editing fstab
+full_opts=$(grep subvolid=258 /mnt/etc/fstab | awk ' {print $4} ')
+last_col="0  0"
+opts=$(echo $full_opts | sed "s|,subvolid=258,subvol=/@/.snapshots/1/snapshot| |")
+SUB="UUID=$ROOT_UUID \t \t /\t\t  btrfs \t $opts \t $last_col"
+sed -i "/subvolid=258/ c $SUB" /mnt/etc/fstab  ### IMPORTANT!!!! (Add -i option to sed)
+
+##  Edit 10_linux and 20_linux_xen files 
+sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/10_linux
+sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/20_linux_xen
+
+#################### System configurations without chrooting ##########
+
+info_print "Configuring system (timezone, system clock, GRUB)."
+
+# 1.Setting up the hostname.
+echo "$hostname" > /mnt/etc/hostname
+
+# 2. Configure selected locale and console keymap
+sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
+echo "LANG=$locale" > /mnt/etc/locale.conf
+echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
+
+info_print "Setting hosts file."
+cat > /mnt/etc/hosts <<EOF
+127.0.0.1	localhost
+::1			localhost
+127.0.1.1	$hostname.localdomain	$hostname
+EOF
+
+# 3. Edit pacman.conf on newly system
+sed -i 's/#Color/Color/' /mnt/etc/pacman.conf
+sed -i '/Color/ a ILoveCandy' /mnt/etc/pacman.conf
+sed -i 's/#ParallelDownloads/ParallelDownloads/' /mnt/etc/pacman.conf
+
+# 4. Setting up root & user account
+info_print "Setting root password."
+echo "root:$rootpass" | arch-chroot /mnt chpasswd
+
+# Setting user account with sudo privileges
+if [[ -n "$username" ]]; then
+	echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel
+	info_print "Adding User $username to the system with root privileges."
+	arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$username"
+	info_print "Setting User password for $username."
+	echo "$username:$userpass" | arch-chroot /mnt/chpasswd
+fi
+
+
+arch-chroot /mnt /bin/bash -e <<EOF
+	# 1. Setting up timezone
+	ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc//localtime &>/dev/null
+
+	# 2. Synchronize pacman repositories
+	pacman -Syy
+
+	# 3. Synchronize clocks
+	 hwclock --systohc
+
+	# 4. Initialize Snapper
+	umount /.snapshots
+	rm -r /.snapshots
+	snapper --no-dbus -c root create-config /
+	btrfs subvolume delete /.snapshots
+	mkdir /snapshots
+	mount -a
+	chmod 750 /.snapshots
+
+	# 4. Generating locales
+	locale-gen &>/dev/null
+	
+	# 5. Installing GRUB.
+	grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt btrfs"
+	grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
+EOF
+
+# Copy post-install script (including related files, if any)
+cp post-install.sh /mnt/home/$username/
+cp UUID.txt /mnt/home/$username/
+cp cosmetics /mnt/home/$username/
+umount -a &>/dev/null
+clear
+info_print "Installation Complete! But, you must still run the post-install.sh script after reboot!"
+info_print "After reboot, Log back in as your username (not root!)."
+info_print "NOTE: You will be greeted with a black tty1. Desktop Environment like"
+info_print "      GNOME, KDE, XFCE etc will be installed in the next stage!" 
+info_print "1. Make the script executable: chmod a+x postinstall.sh"
+info_print "2. Run the script: ./postinstall.sh"
+info_print ""
+info_print ""
+read -n 1 -s -r -p "Press any key to continue..."
+info_print ""
+clear
+info_print "Rebooting in 5 seconds..."
+sleep 5
+reboot

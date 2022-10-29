@@ -1,0 +1,29 @@
+#####################################################################################
+#
+# Mount the ROOT BTRFS Filesystem 
+# Create Mountpoints for BTRFS Subvolumes
+#
+######################################################################################
+source cosmetics
+
+function mount_and_create_mountpoints () {
+
+	mount UUID=$ROOT_UUID -o compress=zstd /mnt
+
+########### Make Mountpoints for Subvolumes
+
+	mkdir /mnt/.snapshots
+	mkdir -p /mnt/boot/grub
+	mkdir /mnt/opt
+	mkdir /mnt/root
+	mkdir /mnt/srv
+	mkdir /mnt/tmp
+	mkdir -p /mnt/usr/local
+	mkdir -p /mnt/var/cache
+	mkdir /mnt/var/log
+	mkdir /mnt/var/spool
+	mkdir /mnt/var/tmp
+	mkdir /mnt/efi
+	mkdir /mnt/home
+}
+

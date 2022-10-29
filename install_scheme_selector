@@ -1,0 +1,28 @@
+##############  Selecting Installation and Partition Scheme (function) #################
+source cosmetics
+
+function install_scheme_selector () {
+       info_print ""
+       info_print ""
+       info_print "        LIST OF INSTALLATION SCHEMES:"
+       info_print ""
+       info_print "1) CLEAN INSTALL: This will wipe all existing OS's/distros and partitions. Minimum storage size: 30 GiB."
+       info_print ""
+       info_print "2) AUTOMATIC INSTALL: This will install Arch alongside existing OS's and partitions on remaining free space. Minimum storage size: 30 GiB."
+       info_print "   Partitions for ESP, SWAP, ROOT and HOME will be created and the script will allocate their sizes automatically."
+       info_print "   No existing partitions and disks will be touched."
+       info_print ""
+       info_print "3) MANUAL INSTALL (experts only): You choose partition sizes for ESP, SWAP, ROOT and HOME. Minimum storage size: 30 GiB."
+       info_print "   HOWEVER, you MUST still follow the RECOMMENDED sizes and layout provided (to conform to OpenSUSE's snapper layout!)."
+       info_print "    No existing partitions and disks will be touched."
+       info_print ""
+       input_print "Please select the number corresponding to your choice (e.g. 1): "
+       read -r install_choice
+       if (( install_choice >=1 && install_choice <= 3 )); then return 0;
+           else
+               clear
+               error_print "You did not enter a valid selection, please try again."
+               return 1
+       fi
+}
+

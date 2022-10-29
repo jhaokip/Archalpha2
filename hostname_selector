@@ -1,0 +1,16 @@
+####################### HOSTNAME SELECTOR #######################################
+source cosmetics
+
+function hostname_selector () {
+
+	input_print "Please enter the hostname: "
+    read -r hostname
+    if [[ -z "$hostname" ]]; then
+        error_print "You need to enter a hostname in order to continue."
+        return 1
+    fi
+    return 0
+}
+
+
+

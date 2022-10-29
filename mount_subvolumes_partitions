@@ -1,0 +1,22 @@
+############################################################################################
+## Mount Subvolumes and Partitions
+############################################################################################
+source cosmetics
+function mount_subvolumes_partitions () {
+
+	mount UUID=$ROOT_UUID -o subvol=@/.snapshots,compress=zstd /mnt/.snapshots 
+	mount UUID=$ROOT_UUID -o subvol=@/boot/grub,compress=zstd /mnt/boot/grub
+	mount UUID=$ROOT_UUID -o subvol=@/opt,compress=zstd /mnt/opt
+	mount UUID=$ROOT_UUID -o subvol=@/root,compress=zstd /mnt/root
+	mount UUID=$ROOT_UUID -o subvol=@/srv,compress=zstd /mnt/srv
+	mount UUID=$ROOT_UUID -o subvol=@/tmp,compress=zstd /mnt/tmp
+	mount UUID=$ROOT_UUID -o subvol=@/usr/local,compress=zstd /mnt/usr/local
+	mount UUID=$ROOT_UUID -o subvol=@/var/cache,nodatacow /mnt/var/cache
+	mount UUID=$ROOT_UUID -o subvol=@/var/log,nodatacow /mnt/var/log
+	mount UUID=$ROOT_UUID -o subvol=@/var/spool,nodatacow /mnt/var/spool	
+	mount UUID=$ROOT_UUID -o subvol=@/var/tmp,nodatacow /mnt/var/tmp
+	mount UUID=$EFI_UUID /mnt/efi
+	mount UUID=$HOME_UUID /mnt/home
+	swapon UUID=$SWAP_UUID
+
+}

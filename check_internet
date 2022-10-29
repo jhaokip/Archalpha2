@@ -1,0 +1,26 @@
+################## Check internet connection #################
+source cosmetics
+
+function check_internet () {
+	info_print "Checking for internet connection, please wait..."
+        ch_int="y"
+        while [[ "$ch_int" != "n" ]]
+        do
+                if (ping -c 4 archlinux.org &>/dev/null); then
+                        info_print "Internet connection is working!"
+                        info_print ""
+                        break
+                else
+                        error_print "No internet connection. Check again?: (Y/n)"
+                        read ch_int
+                        if [[ "$ch_int" == "n" ]]; then
+                                error_print "Quitting Arch install script..."
+                                error_print "Try again later!"
+                                info_print ""
+                                exit
+                        fi
+                fi
+        done
+        return 0
+}
+

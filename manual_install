@@ -1,0 +1,203 @@
+################## MANUAL INSTALL: PARTITIONING AND FORMATING #############################
+#
+#  EXPECTATIONS:
+#  EFI_DISK, SWAP_DISK, ROOT_DISK and HOME_DISK : PARTITION DEVICE PATH/NAME
+#  EFI_SIZE, SWAP_SIZE, ROOT_SIZE and HOME_SIZE : PARTITION SIZES
+#
+#clear
+source cosmetics
+function manual_install () {
+
+	
+	M="M"
+    G="G"
+    #DISK_SIZE=fspace_G ## assign free disk space to DISK_SIZE
+    #DISK=/dev/sdb
+    shdp=$(echo $DISK | sed 's|/dev/||')
+
+    ##### check no. of existing partitions on installation disk, call it n
+    n=$(lsblk $DISK -o NAME | grep -v "\<$shdp\>" | sed '1d' | wc -l)
+
+    EFI_DISK=$DISK$((n+1))
+    SWAP_DISK=$DISK$((n+2))
+    ROOT_DISK=$DISK$((n+3))
+    HOME_DISK=$DISK$((n+4))
+
+
+    info_print "###################### MANUAL DISK PARTITION ########################"
+	info_print ""
+	info_print "    You MUST create ONLY 4 SEPARATE and DISTINCT partitions:"
+	info_print "     i) ESP/EFI (separate) ii) SWAP Partition (separate)"
+	info_print "   iii) ROOT Partition     iv) HOME Partition"
+	info_print ""
+	info_print ""
+	info_print "    ********************** 1. ESP/EFI PARTITION *******************"
+	info_print " *  ESP/EFI Partition : A separate ESP/EFI of MINIMUM SIZE 512 MiB is MANDATORY."
+	info_print "    It will be a dedicated ESP/EFI partition for this Arch installation."
+	info_print "    No mixing of different OS's bootloaders in the same ESP/EFI partition."
+	info_print " *  Please give input for ESP/EFI size in MiB only (not in GiB)."
+	info_print " *  Please give ONLY INTEGER input WITHOUT units."
+	info_print "    Examples: Valid Input - 512, 600, 700 etc"
+	info_print "              Invalid Input - 512M, 0.5G, 600.00 etc "
+	info_print ""
+	## Ask user for ESP/EFI size
+	loop_flag="n"
+	while [[ $loop_flag == "n" ]]
+	do
+	    input_print "    Please enter your desired ESP/EFI size (in MiB only): "
+	    read -r EFI_SIZE
+	    clear
+	     if [[ -n ${EFI_SIZE//[0-9]/} ]]
+	         then
+ 	            loop_flag="n"
+ 	            error_print "$EFI_SIZE is not a valid integer. Please try again."
+ 	        else
+ 	           loop_flag="y"
+               info_print ""; info_print ""; info_print ""; info_print ""; info_print ""; 
+ 	           info_print "    You have SUCCESSFULLY allocated $EFI_SIZE MiB to ESP/EFI Partition."
+ 	     fi
+	done
+	info_print ""
+	info_print ""
+	info_print "    *********************** 2. SWAP PARTITION ********************"
+	info_print ""
+	info_print "    SWAP Partition: A SWAP partition, however small, is MANDATORY. "
+	info_print "    No sharing of SWAP partition between OS's and distros."
+	info_print "    Please give input for SWAP Partition  size in GiB only (not in MiB)."
+	info_print "    Please give ONLY INTEGER input WITHOUT units."
+	info_print "    Examples: Valid Input - 2, 4, 8, 16  etc"
+	info_print "              Invalid Input - 2G, 2.5G, 6.0, 8.00 etc "
+
+	## Ask user for SWAP PARTITION size
+	loop_flag="n"
+	while [[ $loop_flag == "n" ]]
+	do
+	    input_print "    Please enter your desired SWAP size (in GiB only): "
+	    read -r SWAP_SIZE
+	    clear
+	     if [[ -n ${SWAP_SIZE//[0-9]/} ]]
+	         then
+	             loop_flag="n"
+	             error_print "$SWAP_SIZE is not a valid integer. Please try again."
+	         else
+	            loop_flag="y"
+                info_print ""; info_print ""; info_print ""; info_print ""; info_print ""; 
+	            info_print "    You have SUCCESSFULLY allocated $SWAP_SIZE GiB to SWAP Partition."
+	      fi
+	done
+	
+	info_print ""
+	info_print ""
+	info_print "    *********************** 3. ROOT PARTITION ********************"
+	info_print ""
+	info_print "    ROOT Partition: A ROOT partition is also  MANDATORY. "
+	info_print "    MINIMUM SIZE: 16 GiB (for Snapper/snapshots to work properly)."
+	info_print "    RECOMMENDED SIZE: 32 GiB or more (per OpenSUSE's Snapper documentations)"
+	info_print "    Please give input for ROOT Partition size in GiB only (not in MiB)."
+	info_print "    Please give ONLY INTEGER input WITHOUT units."
+	info_print "    Examples: Valid Input - 16, 20, 32, 50  etc"
+	info_print "              Invalid Input - 16G, 32.5G, 60.0M, 80.00 etc "
+
+	## Ask user for ROOT PARTITION size
+	loop_flag="n"
+	while [[ $loop_flag == "n" ]]
+	do
+	    input_print "    Please enter your desired ROOT size (in GiB only): "
+	    read -r ROOT_SIZE
+	    clear
+	     if [[ -n ${ROOT_SIZE//[0-9]/} ]]
+	         then
+	             loop_flag="n"
+	             error_print "$ROOT_SIZE is not a valid integer. Please try again."
+	         else
+	            loop_flag="y"
+                info_print ""; info_print ""; info_print ""; info_print ""; info_print ""; 
+	            info_print "    You have SUCCESSFULLY allocated $ROOT_SIZE GiB to ROOT Partition."
+	      fi
+	done
+	
+	info_print ""
+	info_print ""
+	info_print "    *********************** 4. HOME PARTITION ********************"
+	info_print ""
+	info_print "    HOME Partition: A HOME partition is also  MANDATORY. "
+	info_print "    You can allocate whatever you want or the remaining disk space to this partition."
+	info_print "    Please give input for ROOT Partition size in GiB only (not in MiB)."
+	info_print "    Please give ONLY INTEGER input WITHOUT units."
+	info_print "    Examples: Valid Input - 0, 20, 32, 50  etc"
+	info_print "              Invalid Input - 16G, 32.5G, 60.0M, 80.00 etc "
+    info_print "    IMPORTANT: If you want to allocate the remaining disk space, then "
+	info_print "    simply enter 0 (the number zero, not the alphabet o)."
+
+	## Ask user for HOME PARTITION size
+	loop_flag="n"
+	while [[ $loop_flag == "n" ]]
+	do
+	    input_print "    Please enter your desired HOME size (in GiB only): "
+	    read -r HOME_SIZE
+	    clear
+	     if [[ -n ${ROOT_SIZE//[0-9]/} ]]
+	         then
+	             loop_flag="n"
+	             error_print "$HOME_SIZE is not a valid integer. Please try again."
+	         else
+	            loop_flag="y"
+                info_print ""; info_print ""; info_print ""; info_print ""; info_print "";  
+	            info_print "    You have SUCCESSFULLY allocated $HOME_SIZE GiB to HOME Partition."
+	      fi
+	done
+	
+	info_print ""
+	info_print ""
+
+	########  Verify Disk Size Allocation #############
+    
+	mtb=1048576
+	gtb=1073741824
+
+	efi_size_bytes=$((EFI_SIZE * mtb))
+	swap_size_bytes=$((SWAP_SIZE * gtb))
+	root_size_bytes=$((ROOT_SIZE * gtb))
+	home_size_bytes=$((HOME_SIZE * gtb))
+
+	size_alloc=$(( efi_size_bytes +  swap_size_bytes +  root_size_bytes +  home_size_bytes ))
+	size_alloc_G=$(( size_alloc / gtb ))
+	
+	if (( size_alloc > fspace ))
+    then
+        info_print "Your disk allocation fails! Please try again!"
+		exit
+    else
+        info_print "Your disk size allocation is as follows:"
+        info_print "ESP : $EFI_SIZE$M" 
+		info_print "SWAP: $SWAP_SIZE$G"
+		info_print "ROOT: $ROOT_SIZE$G"
+		info_print "HOME: $(( fspace_G - size_alloc_G ))$G"
+	fi
+
+    ## Create necessary partitions using sgdisk
+    sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
+
+	## Informing the Kernel of the changes.
+	info_print "Informing the Kernel about the disk changes."
+	partprobe "$DISK"
+    
+    #################### DISK PARTITIONING FINISHED ###########################
+
+    ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+    sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
+    #
+    # Format SWAP Partition with filesystem label Arch-SWAP
+    sudo mkswap -L Arch-SWAP $SWAP_DISK
+    #
+    # Format ROOT Partition with filesystem label Arch-ROOT
+    sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
+    #
+    # Format HOME Partition with filesystem label Arch-HOME
+    sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
+    #
+    sudo sgdisk -p $DISK
+    sleep 4
+
+    # ################### FORMATTING PARTITIONING FINISHED #####################
+}

@@ -1,0 +1,13 @@
+################## UPDATE PACMAN MIRRORS USING REFLECTOR ##################
+source cosmetics
+
+function update_mirrors () {
+
+	### Backup original mirrorlist
+	# cp mirrorlist mirrorlist-bak
+	
+	info_print "Setting up mirrorlist..."
+	## Run reflector
+	reflector --country France,Germany --latest 5 --protocol https --age 24 --sort rate --save /etc/pacman.d/mirrorlist
+
+}

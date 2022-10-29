@@ -1,0 +1,17 @@
+#!/bin/bash
+source cosmetics
+
+########################### EDITING PACMAN CONFIGURATIONS #######################
+#		1. Enable Colors
+#		2. ADD ILoveCandy
+#		3. Enable Parallel Downloads
+#		4. (Optional) Enable multi-lib repository
+#  NOTE: Change PPATH and include -i option accordingly
+#################################################################################
+
+function edit_pacman () {
+
+sed -i 's/#Color/Color/; /Color/ a ILoveCandy' /etc/pacman.conf
+sed -i 's/#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+
+}

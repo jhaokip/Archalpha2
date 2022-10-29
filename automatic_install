@@ -1,0 +1,78 @@
+################## AUTOMATIC INSTALL: PARTITIONING AND FORMATTING #####################
+#
+#  EXPECTATIONS:
+#  EFI_DISK, SWAP_DISK, ROOT_DISK and HOME_DISK : PARTITION DEVICE PATH/NAME
+#  EFI_SIZE, SWAP_SIZE, ROOT_SIZE and HOME_SIZE : PARTITION SIZES
+#
+source cosmetics
+
+function automatic_install () {
+
+	M="M"
+	G="G"
+	DISK_SIZE=fspace_G ## assign free disk space to DISK_SIZE
+   
+    shdp=$(echo $DISK | sed 's|/dev/||')
+	
+    ##### check no. of existing partitions on installation disk, call it n
+	n=$(lsblk $DISK -o NAME | grep -v "\<$shdp\>" | sed '1d' | wc -l)
+
+    EFI_DISK=$DISK$((n+1))
+	SWAP_DISK=$DISK$((n+2))
+    ROOT_DISK=$DISK$((n+3))
+    HOME_DISK=$DISK$((n+4))
+
+
+    # Disk Partitioning and Formatting
+
+    if (( $DISK_SIZE >= 30 && $DISK_SIZE < 50 )); then SWAP_ROOT="2G 16G";   fi
+    if (( $DISK_SIZE >= 50 && $DISK_SIZE < 70 )); then SWAP_ROOT="4G 20G";   fi
+    if (( $DISK_SIZE >= 70 && $DISK_SIZE < 100 )); then SWAP_ROOT="4G 25G";   fi
+    if (( $DISK_SIZE >= 100 && $DISK_SIZE < 130 )); then SWAP_ROOT="8G 40G";   fi
+    if (( $DISK_SIZE >= 130 && $DISK_SIZE < 160 )); then SWAP_ROOT="8G 45G";   fi
+    if (( $DISK_SIZE >= 160 && $DISK_SIZE < 190 )); then SWAP_ROOT="8G 50G";   fi
+    if (( $DISK_SIZE >= 190 && $DISK_SIZE < 220 )); then SWAP_ROOT="8G 55G";   fi
+    if (( $DISK_SIZE >= 220 && $DISK_SIZE < 250 )); then SWAP_ROOT="8G 60G";   fi
+    if (( $DISK_SIZE >= 250 && $DISK_SIZE < 280 )); then SWAP_ROOT="8G 65G";   fi
+    if (( $DISK_SIZE >= 280 && $DISK_SIZE < 310 )); then SWAP_ROOT="8G 70G";   fi
+    if (( $DISK_SIZE >= 310 && $DISK_SIZE < 340 )); then SWAP_ROOT="8G 75G";   fi
+    if (( $DISK_SIZE >= 340 )); then SWAP_ROOT="8G 80G";   fi
+
+    EFI_SIZE=512
+    SWAP_SIZE=$(echo $SWAP_ROOT | sed 's/G//g' | awk ' {print $1}')
+    ROOT_SIZE=$(echo $SWAP_ROOT | sed 's/G//g' | awk ' {print $2}')
+    HOME_SIZE=0
+
+    info_print "ESP:$EFI_SIZE$M SWAP:$SWAP_SIZE$G ROOT:$ROOT_SIZE$G HOME:$HOME_SIZE "
+
+    info_print "ERASING $DISK ...., please wait"
+
+
+    ## Create necessary partitions using sgdisk
+    sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
+
+	## Informing the Kernel of the changes.
+	info_print "Informing the Kernel about the disk changes."
+	partprobe "$DISK"
+    
+	#################### DISK PARTITIONING FINISHED ###########################
+
+    ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+    sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
+    #
+    # Format SWAP Partition with filesystem label Arch-SWAP
+    sudo mkswap -L Arch-SWAP $SWAP_DISK
+    #
+    # Format ROOT Partition with filesystem label Arch-ROOT
+    sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
+    #
+    # Format HOME Partition with filesystem label Arch-HOME
+    sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
+    #
+    sudo sgdisk -p $DISK
+	sleep 4
+
+    # ################### FORMATTING PARTITIONING FINISHED #####################
+
+
+}
