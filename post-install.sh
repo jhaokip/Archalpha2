@@ -57,7 +57,7 @@ sudo systemctl start snapper-cleanup.timer
 
 de_selector () {
 
-	info_print "Choose your Desktop Environment"
+	info_print "***** Choose your Desktop Environment *******"
 	info_print "List of Desktop Environment:"
 	info_print "1. GNOME"
 	info_print "2. KDE"
@@ -74,6 +74,7 @@ de_selector () {
 }
 
 until de_selector; do : ;
+
 case $de_choice in
 	1)  sudo pacman -S --noconfirm --needed xorg gnome gnome-extra gdm
 		sudo systemctl enable gdm
@@ -97,7 +98,7 @@ case $de_choice in
 		sleep 5
 		sudo reboot
 		;;
-	3) sudo pacman -S --noconfirm --needed xorg xorg-xinit i3-gaps i3lock i3status dmenu xfce4-terminal firefox picom nitrogen lxappearance archlinux-wallpaper arc-gtk-theme
+	3) sudo pacman -S --noconfirm --needed xorg xorg-xinit i3-gaps i3lock i3status dmenu xfce4-terminal firefox picom nitrogen lxappearance archlinux-wallpaper arc-gtk-theme materia-gtk-theme papirus-icon-theme
 		sudo cp /etc/X11/xinit/xinitrc ~/.xinitrc
 		sudo chown $USER:$USER .xinitrc
 		sed '51,55d' .xinitrc
