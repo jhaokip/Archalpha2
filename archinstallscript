@@ -114,10 +114,10 @@ SWAP_UUID=$(lsblk -o UUID $SWAP_DISK | grep -v UUID)
 ROOT_UUID=$(lsblk -o UUID $ROOT_DISK | grep -v UUID)
 HOME_UUID=$(lsblk -o UUID $HOME_DISK | grep -v UUID)
 
-#echo "efi_uuid=$EFI_UUID" 
-#echo "swap_uuid=$SWAP_UUID" 
-#echo "root_uuid=$ROOT_UUID" 
-#echo "home_uuid=$HOME_UUID"
+echo "efi_uuid=$EFI_UUID" > UUID.txt 
+echo "swap_uuid=$SWAP_UUID" >> UUID.txt
+echo "root_uuid=$ROOT_UUID" >> UUID.txt 
+echo "home_uuid=$HOME_UUID" >> UUID.txt
 info_print "Disk Partition and Formatting Completed!!!!"
 read -n 1 -s -r -p "Press any key to continue..."
 clear
@@ -167,7 +167,15 @@ virt_check
 
 genfstab -U /mnt >> /mnt/etc/fstab
 clear
+info_print "ROOT UUID: $ROOT_UUID"
+info_print " EFI UUID: $EFI_UUID"
+info_print "SWAP UUID: $SWAP_UUID"
+info_print "HOME UUID: $HOME_UUID"
+read -n 1 -s -r -p "Press any key to continue..."
+
 cat /mnt/etc/fstab | less
+##read -n 1 -s -r -p "Press any key to continue..."
+
 #input_print "Do you wish to continue to editing fstab?[y/n]: "
 #read -r wish
 #if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
@@ -190,7 +198,7 @@ sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/10_linux
 sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/20_linux_xen
 info_print "Edited 10_linux..."
 cat /mnt/etc/grub.d/10_linux | less
-read -n 1 -s -r -p "Continue to 20_linux...press any key..."
+read -n 1 -s -r -p "Press any key to continue..."
 cat /mnt/etc/grub.d/20_linux_xen | less
 clear
 input_print "Do you wish to continue to system config without chrooting?[y/n]: "
@@ -274,10 +282,9 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	rm -r /.snapshots
 	snapper --no-dbus -c root create-config /
 	btrfs subvolume delete /.snapshots
-	mkdir /snapshots
+	mkdir /.snapshots
 	mount -a
 	chmod 750 /.snapshots
-	sleep 4
 
 	# 4. Generating locales
 	echo "Inside chroot: Generating locales..."
@@ -285,11 +292,10 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	
 	# 5. Installing GRUB.
 	echo "Inside chroot: Installing GRUB..."
-	grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt btrfs"
+    grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=ARCH-B --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt btrfs"
 	grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
 	
 	echo "About to exit in 4 seconds...."
-	sleep 4
 	exit
 EOF
 
@@ -312,7 +318,8 @@ fi
 read -n 1 -s -r -p "Press any key to continue..."
 sudo umount -a &>/dev/null
 clear
-
+#exit
+: '
 info_print "Installation Complete! But, you must still run the post-install.sh script after reboot!"
 info_print "After reboot, Log back in as your username (not root!)."
 info_print "NOTE: You will be greeted with a black tty1. Desktop Environment like"
@@ -325,5 +332,5 @@ read -n 1 -s -r -p "Press any key to continue..."
 info_print ""
 clear
 info_print "Rebooting in 5 seconds..."
-sleep 5
-reboot
+sleep 3
+ '
