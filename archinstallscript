@@ -44,6 +44,8 @@ ${RESET}"
 info_print "Welcome to easy-arch, a script made in order to simplify the process of installing Arch Linux."
 
 ## set terminal font
+setfont ter-120n &>/dev/null
+
 ## download git if not available
 
 ## Setting up keyboard layout.
@@ -60,10 +62,11 @@ edit_pacman
 
 ## Synchronize Arch Repos
 info_print "Synchronizing pacman repositories..."
-pacman -Syy
+pacman -Syy &>/dev/null
 
 ## Set timedatectl
 timedatectl set-ntp true
+clear
  
 ## Choosing the target disk for installation
 choose_install_disk
@@ -80,6 +83,7 @@ until install_scheme_selector; do : ; done
       3)  manual_install
           ;;
    esac
+clear
 
 ## Setting up the kernel.
 until kernel_selector; do : ; done
@@ -91,7 +95,6 @@ clear
 
 ## Checking which microcode to install
 microcode_detector
-clear
 
 ## User choses the locale.
 until locale_selector; do : ; done
@@ -99,14 +102,11 @@ clear
 
 # User choses the hostname.
 until hostname_selector; do : ; done
-clear
 
 # Ask user for the user/root passwords.
 until userpass_selector; do : ; done
-clear
 
 until rootpass_selector; do : ; done
-clear
 
 ############### Get UUID's of EFI, SWAP, ROOT and HOME partitions #############
 EFI_UUID=$(lsblk -o UUID $EFI_DISK | grep -v UUID)
@@ -118,18 +118,16 @@ echo "efi_uuid=$EFI_UUID" > UUID.txt
 echo "swap_uuid=$SWAP_UUID" >> UUID.txt
 echo "root_uuid=$ROOT_UUID" >> UUID.txt 
 echo "home_uuid=$HOME_UUID" >> UUID.txt
-info_print "Disk Partition and Formatting Completed!!!!"
-read -n 1 -s -r -p "Press any key to continue..."
 clear
 
 ##################### Creating Subvolumes ################
-info_print "About to create subvolumes (create_subvolumes)..."
+#info_print "About to create subvolumes (create_subvolumes)..."
 create_subvolumes
 read -n 1 -s -r -p "Press any key to continue..."
 clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
-info_print "About to mount and  subvolumes mountpoints..."
+#info_print "Mounting  and  Creating subvolumes mountpoints..."
 mount_and_create_mountpoints
 pacman -S --noconfirm tree &>/dev/null
 
@@ -139,15 +137,16 @@ read n -1 -s -r -p "Press any key to continue..."
 clear
 
 ##################### Mount the Subvolumes and Partitions
-info_print "About to mount Subvolumes and Partitions"
+#info_print "About to mount Subvolumes and Partitions"
 #read -n 1 -s -r -p "Press any key to continue..."
 mount_subvolumes_partitions
 clear
-info_print "Pausing temporarily to check disk partitions, formatting and mountpoints!"
+info_print "Verify disk partitions, formatting and mountpoints!"
 sudo lsblk $DISK -o NAME,SIZE,FSTYPE,MOUNTPOINTS
-input_print "Do you wish to continue to pacstrap /mnt? [y/n]: "
-read -r wish
-if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
+read -n 1 -s -r -p "Please any key to continue..."
+#input_print "Do you wish to continue to pacstrap /mnt? [y/n]: "
+#read -r wish
+#if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 
 ##################### pacstrap Installation #####################
 ## Install base packages  
@@ -167,10 +166,10 @@ virt_check
 
 genfstab -U /mnt >> /mnt/etc/fstab
 clear
-info_print "ROOT UUID: $ROOT_UUID"
-info_print " EFI UUID: $EFI_UUID"
-info_print "SWAP UUID: $SWAP_UUID"
-info_print "HOME UUID: $HOME_UUID"
+#info_print "ROOT UUID: $ROOT_UUID"
+#info_print " EFI UUID: $EFI_UUID"
+#info_print "SWAP UUID: $SWAP_UUID"
+#info_print "HOME UUID: $HOME_UUID"
 read -n 1 -s -r -p "Press any key to continue..."
 
 cat /mnt/etc/fstab | less
@@ -188,7 +187,7 @@ opts=$(echo $full_opts | sed "s|,subvolid=258,subvol=/@/.snapshots/1/snapshot| |
 SUB="UUID=$ROOT_UUID \t \t /\t\t  btrfs \t $opts \t $last_col"
 sed -i "/subvolid=258/ c $SUB" /mnt/etc/fstab  ### IMPORTANT!!!! (Add -i option to sed)
 #info_print "Edited fstab..."
-cat /mnt/etc/fstab | less
+#cat /mnt/etc/fstab | less
 #input_print "Do you wish to continue to editing 10_linux & 20_linux_xen?[y/n]: "
 #read -r wish
 #if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
@@ -196,10 +195,10 @@ cat /mnt/etc/fstab | less
 ##  Edit 10_linux and 20_linux_xen files 
 sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/10_linux
 sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/20_linux_xen
-info_print "Edited 10_linux..."
-cat /mnt/etc/grub.d/10_linux | less
-read -n 1 -s -r -p "Press any key to continue..."
-cat /mnt/etc/grub.d/20_linux_xen | less
+#info_print "Edited 10_linux..."
+#cat /mnt/etc/grub.d/10_linux | less
+#read -n 1 -s -r -p "Press any key to continue..."
+#cat /mnt/etc/grub.d/20_linux_xen | less
 clear
 input_print "Do you wish to continue to system config without chrooting?[y/n]: "
 read -r wish
@@ -210,18 +209,19 @@ if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 info_print "Configuring system (timezone, system clock, GRUB)."
 
 # 1.Setting up the hostname.
-info_print "Setting up hostname..."
+#info_print "Setting up hostname..."
 echo "$hostname" > /mnt/etc/hostname
-cat /mnt/etc/hostname
-read -n 1 -s -r -p "Press any key to continue..."
+#cat /mnt/etc/hostname
+#read -n 1 -s -r -p "Press any key to continue..."
 
 # 2. Configure selected locale, console keymap and hosts file
+info_print ""
 info_print "Configuring locale and console keymap..."
 sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
 echo "LANG=$locale" > /mnt/etc/locale.conf
 echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
-cat /mnt/etc/locale.conf
-cat /mnt/etc/vconsole.conf
+#cat /mnt/etc/locale.conf
+#cat /mnt/etc/vconsole.conf
 
 info_print "Setting up hosts file."
 cat > /mnt/etc/hosts <<EOF
@@ -229,20 +229,20 @@ cat > /mnt/etc/hosts <<EOF
 ::1			localhost
 127.0.1.1	$hostname.localdomain	$hostname
 EOF
-cat /mnt/etc/hosts
-read -n 1 -s -r -p "Press any key to continue..."
+#cat /mnt/etc/hosts
+#read -n 1 -s -r -p "Press any key to continue..."
 
 # 3. Edit pacman.conf on newly system
 info_print "Editing pacman.conf..."
 sed -i 's/#Color/Color/' /mnt/etc/pacman.conf
 sed -i '/Color/ a ILoveCandy' /mnt/etc/pacman.conf
 sed -i 's/#ParallelDownloads/ParallelDownloads/' /mnt/etc/pacman.conf
-cat /mnt/etc/pacman.conf | less
+#cat /mnt/etc/pacman.conf | less
 
 # 4. Setting up root & user account
-input_print "About to enter chroot...Do you wish to continue?[y/n]: "
-read -r wish
-if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
+#input_print "About to enter chroot...Do you wish to continue?[y/n]: "
+#read -r wish
+#if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 
 info_print "Setting root password."
 echo "root:$rootpass" | arch-chroot /mnt chpasswd
@@ -309,7 +309,7 @@ info_print "About to copy post-install.sh to /mnt/home/user..."
 sudo cp post-install.sh /mnt/home/$username/
 sudo cp UUID.txt /mnt/home/$username/
 sudo cp cosmetics /mnt/home/$username/
-if [ -f /mnt/home/$username/post-install.sh]
+if [ -f /mnt/home/$username/post-install.sh ]
 	then
 		info_print "post-install.sh copying success!"
 	else
@@ -318,19 +318,14 @@ fi
 read -n 1 -s -r -p "Press any key to continue..."
 sudo umount -a &>/dev/null
 clear
-#exit
-: '
 info_print "Installation Complete! But, you must still run the post-install.sh script after reboot!"
 info_print "After reboot, Log back in as your username (not root!)."
-info_print "NOTE: You will be greeted with a black tty1. Desktop Environment like"
-info_print "      GNOME, KDE, XFCE etc will be installed in the next stage!" 
-info_print "1. Make the script executable: chmod a+x postinstall.sh"
-info_print "2. Run the script: ./postinstall.sh"
+info_print "NOTE: You will be greeted with a black tty1. Desktop Environments like "
+info_print "       GNOME, KDE, XFCE or WM's etc will be installed in the next stage!" 
+info_print "Once logged in, run the script: ./postinstall.sh"
 info_print ""
 info_print ""
 read -n 1 -s -r -p "Press any key to continue..."
-info_print ""
 clear
-info_print "Rebooting in 5 seconds..."
-sleep 3
- '
+exit
+

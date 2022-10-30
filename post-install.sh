@@ -30,16 +30,19 @@ output=$(sudo systemd-escape --template btrfs-scrub@.timer --path /dev/disk/by-u
 sudo systemctl enable $output
 sudo systemctl start $output
 
-# 5. Edit Snapper Configuration file
-sed -i 's|QGROUP=""|QGROUP="1/0"|' /etc/snapper/configs/root
-sed -i 's|NUMBER_LIMIT="50"|NUMBER_LIMIT="10-35"|' /etc/snapper/configs/root
-sed -i 's|NUMBER_LIMIT_IMPORTANT="50"|NUMBER_LIMIT_IMPORTANT="15-25"|' /etc/snapper/configs/root
-sed -i 's|TIMELINE_LIMIT_HOURLY="10"|TIMELINE_LIMIT_HOURLY="5"|' /etc/snapper/configs/root
-sed -i 's|TIMELINE_LIMIT_DAILY="10"|TIMELINE_LIMIT_DAILY="5"|' /etc/snapper/configs/root
-sed -i 's|TIMELINE_LIMIT_WEEKLY="0"|TIMELINE_LIMIT_WEEKLY="2"|' /etc/snapper/configs/root
-sed -i 's|TIMELINE_LIMIT_MONTHLY="10"|TIMELINE_LIMIT_MONTHLY="3"|' /etc/snapper/configs/root
-sed -i 's|TIMELINE_LIMIT_YEARLY="10"|TIMELINE_LIMIT_YEARLY="0"|' /etc/snapper/configs/root
+sudo mv /etc/snapper/configs/root . 
 
+# 5. Edit Snapper Configuration file
+sed -i 's|QGROUP=""|QGROUP="1/0"|' root
+sed -i 's|NUMBER_LIMIT="50"|NUMBER_LIMIT="10-35"|' root
+sed -i 's|NUMBER_LIMIT_IMPORTANT="50"|NUMBER_LIMIT_IMPORTANT="15-25"|' root
+sed -i 's|TIMELINE_LIMIT_HOURLY="10"|TIMELINE_LIMIT_HOURLY="5"|' root
+sed -i 's|TIMELINE_LIMIT_DAILY="10"|TIMELINE_LIMIT_DAILY="5"|' root
+sed -i 's|TIMELINE_LIMIT_WEEKLY="0"|TIMELINE_LIMIT_WEEKLY="2"|' root
+sed -i 's|TIMELINE_LIMIT_MONTHLY="10"|TIMELINE_LIMIT_MONTHLY="3"|' root
+sed -i 's|TIMELINE_LIMIT_YEARLY="10"|TIMELINE_LIMIT_YEARLY="0"|' root
+
+sudo mv root /etc/snapper/configs/
 
 # 6. Enable the timeline snapshots timer
 sudo systemctl enable snapper-timeline.timer
@@ -76,7 +79,8 @@ de_selector () {
 until de_selector; do : ;
 
 case $de_choice in
-	1)  sudo pacman -S --noconfirm --needed xorg gnome gnome-extra gdm
+	1)  info_print "Installing GNOME..."
+		sudo pacman -S --noconfirm --needed xorg gnome gnome-extra gdm
 		sudo systemctl enable gdm
 		sudo systemctl start gdm 
 		info_print "Installation is now complete! Enjoy!"
@@ -87,7 +91,8 @@ case $de_choice in
 		sleep 5
 		sudo reboot
 		;;
-	2)  sudo pacman -S --noconfirm --needed xorg plasma kde-applications ssdm package-qt5 dolphin-plugins
+	2)  info_print "Installing KDE..." 
+		sudo pacman -S --noconfirm --needed xorg plasma kde-applications ssdm package-qt5 dolphin-plugins
 		sudo systemctl enable sddm
 		sudo systemctl start sddm
 		info_print "Installation is now complete! Enjoy!"
@@ -98,7 +103,8 @@ case $de_choice in
 		sleep 5
 		sudo reboot
 		;;
-	3) sudo pacman -S --noconfirm --needed xorg xorg-xinit i3-gaps i3lock i3status dmenu xfce4-terminal firefox picom nitrogen lxappearance archlinux-wallpaper arc-gtk-theme materia-gtk-theme papirus-icon-theme
+	3)  info_print "Installing i3 WM's..." 
+		sudo pacman -S --noconfirm --needed xorg xorg-xinit i3-gaps i3lock i3status dmenu xfce4-terminal firefox picom nitrogen lxappearance archlinux-wallpaper arc-gtk-theme materia-gtk-theme papirus-icon-theme
 		sudo cp /etc/X11/xinit/xinitrc ~/.xinitrc
 		sudo chown $USER:$USER .xinitrc
 		sed '51,55d' .xinitrc

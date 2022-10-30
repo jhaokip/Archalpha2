@@ -3,11 +3,9 @@ source cosmetics
 
 function update_mirrors () {
 
-	### Backup original mirrorlist
-	# cp mirrorlist mirrorlist-bak
 	
-	info_print "Setting up mirrorlist..."
+	info_print "Setting up mirrorlist...please wait"
 	## Run reflector
-	reflector --country France,Germany --latest 5 --protocol https --age 24 --sort rate --save /etc/pacman.d/mirrorlist
+	reflector --country France,Germany --latest 5 --protocol https --age 24 --sort rate --save /etc/pacman.d/mirrorlist &>/dev/null
 
 }

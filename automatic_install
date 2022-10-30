@@ -71,6 +71,4 @@ function automatic_install () {
 	sleep 5
 
     # ################### FORMATTING PARTITIONING FINISHED #####################
-
-
 }

@@ -2,6 +2,8 @@
 source cosmetics
 
 function install_scheme_selector () {
+		
+	   clear
        info_print ""
        info_print ""
        info_print "                          LIST OF INSTALLATION SCHEMES:"
