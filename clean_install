@@ -63,7 +63,7 @@ function clean_install () {
 
 	## Informing the Kernel of the changes
 	info_print "Informing the Kernel about the disk changes."
-	partprobe "$DISK"
+	sudo partprobe "$DISK"
     
    #################### DISK PARTITIONING FINISHED ###########################
     

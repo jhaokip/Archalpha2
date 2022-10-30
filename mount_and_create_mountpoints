@@ -5,25 +5,26 @@
 #
 ######################################################################################
 source cosmetics
+source UUID.txt
 
 function mount_and_create_mountpoints () {
 
-	mount UUID=$ROOT_UUID -o compress=zstd /mnt
+	mount UUID="$ROOT_UUID" -o compress=zstd /mnt
 
 ########### Make Mountpoints for Subvolumes
 
-	mkdir /mnt/.snapshots
-	mkdir -p /mnt/boot/grub
-	mkdir /mnt/opt
-	mkdir /mnt/root
-	mkdir /mnt/srv
-	mkdir /mnt/tmp
-	mkdir -p /mnt/usr/local
-	mkdir -p /mnt/var/cache
-	mkdir /mnt/var/log
-	mkdir /mnt/var/spool
-	mkdir /mnt/var/tmp
-	mkdir /mnt/efi
-	mkdir /mnt/home
+	sudo mkdir /mnt/.snapshots
+	sudo mkdir -p /mnt/boot/grub
+	sudo mkdir /mnt/opt
+	sudo mkdir /mnt/root
+	sudo mkdir /mnt/srv
+	sudo mkdir /mnt/tmp
+	sudo mkdir -p /mnt/usr/local
+	sudo mkdir -p /mnt/var/cache
+	sudo mkdir /mnt/var/log
+	sudo mkdir /mnt/var/spool
+	sudo mkdir /mnt/var/tmp
+	sudo mkdir /mnt/efi
+	sudo mkdir /mnt/home
 }
 

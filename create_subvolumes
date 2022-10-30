@@ -2,53 +2,57 @@
 # This function creates btrfs subvolumes necessary to make Snapper work properly
 ###################################################################################
 source cosmetics
+source UUID.txt
 
-function create_subvolumes () {
+function create_subvolumes () 
+{
 
 	info_print "Mount the root BTRFS partition..."
-	mount UUID=$ROOT_UUID /mnt
-	mount | grep mnt
+	sudo mount UUID="$ROOT_UUID" /mnt
+	sudo mount | grep mnt
 	info_print "Create /mnt/@ subvolume..."
-	btrfs subvolume create /mnt/@
+	sudo btrfs subvolume create /mnt/@
 	info_print "Create /mnt/@/.snapsh"
-	btrfs subvolume create /mnt/@/.snapshots
+	sudo btrfs subvolume create /mnt/@/.snapshots
     info_print "Create /mnt/@ subvolume..."
-    mkdir /mnt/@/.snapshots/1 > log.txt
-	btrfs subvolume create /mnt/@/.snapshots/1/snapshot >> log.txt
-	mkdir /mnt/@/boot >> log.txt
-	btrfs subvolume create /mnt/@/boot/grub >> log.txt
-	btrfs subvolume create /mnt/@/opt >> log.txt
-	btrfs subvolume create /mnt/@/root >> log.txt
-	btrfs subvolume create /mnt/@/srv >> log.txt
-	btrfs subvolume create /mnt/@/tmp >> log.txt
-	mkdir /mnt/@/usr >> log.txt
-	btrfs subvolume create /mnt/@/usr/local >> log.txt
-	mkdir /mnt/@/var >> log.txt
-	btrfs subvolume create /mnt/@/var/cache >> log.txt
-	btrfs subvolume create /mnt/@/var/log >> log.txt
-	btrfs subvolume create /mnt/@/var/spool >> log.txt
-	btrfs subvolume create /mnt/@/var/tmp >> log.txt
-	Date=$(date +"%Y-%m-%d %H:%M:%S")
-	touch /mnt/@/.snapshots/1/info.xml
+    sudo mkdir /mnt/@/.snapshots/1 > log.txt
+	sudo btrfs subvolume create /mnt/@/.snapshots/1/snapshot >> log.txt
+	sudo mkdir /mnt/@/boot >> log.txt
+	sudo btrfs subvolume create /mnt/@/boot/grub >> log.txt
+	sudo btrfs subvolume create /mnt/@/opt >> log.txt
+	sudo btrfs subvolume create /mnt/@/root >> log.txt
+	sudo btrfs subvolume create /mnt/@/srv >> log.txt
+	sudo btrfs subvolume create /mnt/@/tmp >> log.txt
+	sudo mkdir /mnt/@/usr >> log.txt
+	sudo btrfs subvolume create /mnt/@/usr/local >> log.txt
+	sudo mkdir /mnt/@/var >> log.txt
+	sudo btrfs subvolume create /mnt/@/var/cache >> log.txt
+	sudo btrfs subvolume create /mnt/@/var/log >> log.txt
+	sudo btrfs subvolume create /mnt/@/var/spool >> log.txt
+	sudo btrfs subvolume create /mnt/@/var/tmp >> log.txt
     info_print "Creating info.xml file"
-	cat > /mnt/@/.snapshots/1/info.xml <<EOF
-	<?xml version="1.0"?>
-	<snapshot>
-		<type>single</type>
-		<num>1</num>
-		<date>$Date</date>
-		<description>First Root Filesystem Created at Installation</description>
-	</snapshot>
-EOF  ## Do NOT change EOF location
+	Date=$(date +"%Y-%m-%d %H:%M:%S")
+	sed -i "s|temp|$Date|g" info.xml	
+	sudo cp info.xml /mnt/@/.snapshots/1/
+	#sudo touch /mnt/@/.snapshots/1/info.xml
+	#sudo cat > /mnt/@/.snapshots/1/info.xml <<EOF
+	#<?xml version="1.0"?>
+	#<snapshot>
+#		<type>single</type>
+#		<num>1</num>
+#		<date>$Date</date>
+#		<description>First Root Filesystem Created at Installation</description>
+#	</snapshot>
+#EOF 
 
     info_print "Set default subvolume..."
-	btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
+	sudo btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
 
-	btrfs quota enable /mnt
-	chattr +C /mnt/@/var/cache
-	chattr +C /mnt/@/var/log
-	chattr +C /mnt/@/var/spool
-	chattr +C /mnt/@/var/tmp
+	sudo btrfs quota enable /mnt
+	sudo chattr +C /mnt/@/var/cache
+	sudo chattr +C /mnt/@/var/log
+	sudo chattr +C /mnt/@/var/spool
+	sudo chattr +C /mnt/@/var/tmp
 
-	umount /mnt
+	sudo umount /mnt
 }

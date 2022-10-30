@@ -30,21 +30,21 @@ done
    info_print "Disk space on $DISK: $disk_space_G GiB."
 
 ## Check if device has partiton table
-	parted $DISK unit B print free &>dev/null > tfile.txt
-	if ( ! grep -q Error tfile.txt)
-		then fspace_G=$disk_space_G; info_print "Available Disk Space on $DISK: $fspace_G G"
-		else
-   			fspace=$(sudo parted $DISK unit B print free | awk '/Free Space/{c++; sum += $3} END{if(sum <= 32212254720) print "abort"; else print sum }')
-   			if (( $fspace == "abort" ))
-     	    	 then
-             		info_print "You have Insufficient space..."
-             		info_print "Try reclaiming free space and try again!"
-             		info_print "Quitting Arch installation now..."
-            		 exit
-        		 else
-            		fspace_G=$((fspace/1073741824))
-            		info_print "Available free space on $DISK : $fspace_G GiB"
-  		 	fi
-	fi
+   sudo parted $DISK unit B print free &>/dev/null > tfile.txt
+   if ( ! grep -q Error tfile.txt )
+      then fspace_G=$disk_space_G; info_print "Available Disk Space on $DISK: $fspace_G G"
+      else
+           fspace=$(sudo parted $DISK unit B print free | awk '/Free Space/{c++; sum += $3} END{if(sum <= 32212254720) print "abort"; else print sum }')
+           if (( $fspace == "abort" ))
+                then
+                    info_print "You have Insufficient space..."
+                    info_print "Try reclaiming free space and try again!"
+                    info_print "Quitting Arch installation now..."
+                    exit
+                else
+                    fspace_G=$((fspace/1073741824))
+                    info_print "Available free space on $DISK : $fspace_G GiB"
+           fi
+    fi
 }
 

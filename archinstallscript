@@ -42,24 +42,27 @@ echo -ne "${BOLD}${BYELLOW}
 ${RESET}"
 info_print "Welcome to easy-arch, a script made in order to simplify the process of installing Arch Linux."
 
+## set terminal font
+## download git if not available
+
 ## Setting up keyboard layout.
-#until keyboard_selector; do : ; done
+until keyboard_selector; do : ; done
 
 ## Check network connection
-#check_internet
+check_internet
 
 ## Update pacman mirrors
-#update_mirrors
+update_mirrors
 
 ## Edit pacman.conf
-#edit_pacman
+edit_pacman
 
 ## Synchronize Arch Repos
 info_print "Synchronizing pacman repositories..."
 pacman -Syy
 
 ## Set timedatectl
-#timedatectl set-ntp true
+timedatectl set-ntp true
  
 ## Choosing the target disk for installation
 choose_install_disk
@@ -78,30 +81,30 @@ until install_scheme_selector; do : ; done
    esac
 
 ## Setting up the kernel.
-#until kernel_selector; do : ; done
+until kernel_selector; do : ; done
 clear
 
 ## User choses the network.
-#until network_selector; do : ; done
+until network_selector; do : ; done
 clear
 
 ## Checking which microcode to install
-#microcode_detector
+microcode_detector
 clear
 
 ## User choses the locale.
-#until locale_selector; do : ; done
+until locale_selector; do : ; done
 clear
 
 # User choses the hostname.
-#until hostname_selector; do : ; done
+until hostname_selector; do : ; done
 clear
 
 # Ask user for the user/root passwords.
-#until userpass_selector; do : ; done
+until userpass_selector; do : ; done
 clear
 
-#until rootpass_selector; do : ; done
+until rootpass_selector; do : ; done
 clear
 
 ############### Get UUID's of EFI, SWAP, ROOT and HOME partitions #############
@@ -110,30 +113,46 @@ SWAP_UUID=$(lsblk -o UUID $SWAP_DISK | grep -v UUID)
 ROOT_UUID=$(lsblk -o UUID $ROOT_DISK | grep -v UUID)
 HOME_UUID=$(lsblk -o UUID $HOME_DISK | grep -v UUID)
 
-echo "efi_uuid=$EFI_UUID" > UUID.txt 
-echo "swap_uuid=$SWAP_UUID" >> UUID.txt
-echo "root_uuid=$ROOT_UUID" >> UUID.txt
-echo "home_uuid=$HOME_UUID" >> UUID.txt
+#echo "efi_uuid=$EFI_UUID" 
+#echo "swap_uuid=$SWAP_UUID" 
+#echo "root_uuid=$ROOT_UUID" 
+#echo "home_uuid=$HOME_UUID"
 info_print "Disk Partition and Formatting Completed!!!!"
 sleep 3
 
-##################### Create Subvolumes ################
+##################### Creating Subvolumes ################
+info_print "Creating subvolumes...."
+sleep 2
 create_subvolumes
+info_print "Created subvolumes on /mnt:"
+sudo btrfs subvolume list /mnt
+read -n 1 -s -r -p "Press any key to continue..."
 
 ##################### Mount and Create Mountpoints for Subvolume #################
+info_print "Mounting and Creating Subvolumes mountpoints..."
+sleep 3
 mount_and_create_mountpoints
+pacman -S tree
+clear
+info_print "The following mountpoints were just created:"
+tree -L 3 /mnt
+read n -1 -s -r -p "Press any key to continue..."
 
 ##################### Mount the Subvolumes and Partitions
+info_print "Mounting Subvolumes and Partitions"
+sleep 2
 mount_subvolumes_partitions
 
-info_print "Exiting temporarily to check disk partitions, formatting and mountpoints!"
-exit
+info_print "Pausing temporarily to check disk partitions, formatting and mountpoints!"
+sudo lsblk $DISK -o NAME,SIZE,FSTYPE,MOUNTPOINTS
+
+read -n 1 -s -r -p "Press any key to continue to pacstrap /mnt installations..."
 
 ##################### pacstrap Installation #####################
 ## Install base packages + networking here (except maybe DE's/WM's).  
 #
  
-Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac curl wget dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
+Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac curl wget dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
 pacstrap /mnt $Base_Packages
 
 #################################################################
