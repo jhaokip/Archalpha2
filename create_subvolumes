@@ -34,16 +34,6 @@ function create_subvolumes ()
 	Date=$(date +"%Y-%m-%d %H:%M:%S")
 	sed -i "s|temp|$Date|g" info.xml	
 	sudo cp info.xml /mnt/@/.snapshots/1/
-	#sudo touch /mnt/@/.snapshots/1/info.xml
-	#sudo cat > /mnt/@/.snapshots/1/info.xml <<EOF
-	#<?xml version="1.0"?>
-	#<snapshot>
-#		<type>single</type>
-#		<num>1</num>
-#		<date>$Date</date>
-#		<description>First Root Filesystem Created at Installation</description>
-#	</snapshot>
-#EOF 
 
     info_print "Set default subvolume..."
 	sudo btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
@@ -53,6 +43,8 @@ function create_subvolumes ()
 	sudo chattr +C /mnt/@/var/log
 	sudo chattr +C /mnt/@/var/spool
 	sudo chattr +C /mnt/@/var/tmp
-
+	
+	info_print "Created  subvolumes on /mnt: (sudo btrfs subvolume list /mnt)"
+	sudo btrfs subvolume list /mnt
 	sudo umount /mnt
 }

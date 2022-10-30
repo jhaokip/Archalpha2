@@ -174,7 +174,8 @@ function manual_install () {
 		info_print "ROOT: $ROOT_SIZE$G"
 		info_print "HOME: $(( fspace_G - size_alloc_G ))$G"
 	fi
-
+	
+	read -n 1 -s -r -p "Press any key to continue..."
     ## Create necessary partitions using sgdisk
     sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
 

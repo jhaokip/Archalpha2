@@ -1,0 +1,25 @@
+###################### Install networking utitlities ################ #
+#
+#
+function network_installer () {
+	
+	case $network_choice in
+		1 ) info_print "Installing and enabling IWD."
+			pacstrap /mnt iwd >/dev/null
+			systemctl enable iwd --root=/mnt &>/dev/null
+			;;
+        2 ) info_print "Installing and enabling NetworkManager."
+            pacstrap /mnt networkmanager >/dev/null
+            systemctl enable NetworkManager --root=/mnt &>/dev/null
+            ;;
+        3 ) info_print "Installing and enabling wpa_supplicant and dhcpcd."
+            pacstrap /mnt wpa_supplicant dhcpcd >/dev/null
+            systemctl enable wpa_supplicant --root=/mnt &>/dev/null
+            systemctl enable dhcpcd --root=/mnt &>/dev/null
+            ;;
+        4 ) info_print "Installing dhcpcd."
+            pacstrap /mnt dhcpcd >/dev/null
+            systemctl enable dhcpcd --root=/mnt &>/dev/null
+    esac
+
+}

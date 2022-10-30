@@ -45,9 +45,7 @@ function automatic_install () {
 
     info_print "ESP:$EFI_SIZE$M SWAP:$SWAP_SIZE$G ROOT:$ROOT_SIZE$G HOME:$HOME_SIZE "
 
-    info_print "ERASING $DISK ...., please wait"
-
-
+	
     ## Create necessary partitions using sgdisk
     sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
 
@@ -70,7 +68,7 @@ function automatic_install () {
     sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
     #
     sudo sgdisk -p $DISK
-	sleep 4
+	sleep 5
 
     # ################### FORMATTING PARTITIONING FINISHED #####################
 

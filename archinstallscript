@@ -15,8 +15,7 @@ source automatic_install
 source manual_install
 source kernel_selector
 source network_selector
-#source network_installer
-#
+source network_installer
 source microcode_detector
 source locale_selector
 source hostname_selector
@@ -125,22 +124,15 @@ clear
 
 ##################### Creating Subvolumes ################
 info_print "About to create subvolumes (create_subvolumes)..."
-read -n 1 -s -r -p "Press any key to continue..."
 create_subvolumes
-info_print "Created subvolumes on /mnt:(sudo btrfs subvolume list /mnt)"
-sudo btrfs subvolume list /mnt
-input_print "Do you wish to continue? [y/n]: "
-read -r wish
-if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 read -n 1 -s -r -p "Press any key to continue..."
 clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
 info_print "About to mount and  subvolumes mountpoints..."
-read -n 1 -s -r -p "Press any key to continue..."
 mount_and_create_mountpoints
-pacman -S --noconfirm tree
-clear
+pacman -S --noconfirm tree &>/dev/null
+
 info_print "The following mountpoints were just created:"
 tree -L 3 /mnt
 read n -1 -s -r -p "Press any key to continue..."
@@ -148,7 +140,7 @@ clear
 
 ##################### Mount the Subvolumes and Partitions
 info_print "About to mount Subvolumes and Partitions"
-read -n 1 -s -r -p "Press any key to continue..."
+#read -n 1 -s -r -p "Press any key to continue..."
 mount_subvolumes_partitions
 clear
 info_print "Pausing temporarily to check disk partitions, formatting and mountpoints!"
@@ -156,12 +148,9 @@ sudo lsblk $DISK -o NAME,SIZE,FSTYPE,MOUNTPOINTS
 input_print "Do you wish to continue to pacstrap /mnt? [y/n]: "
 read -r wish
 if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
-#read -n 1 -s -r -p "Press any key to continue..."
-#clear
-#read -n 1 -s -r -p "Press any key to quit and continue to pacstrap /mnt installations..."
 
 ##################### pacstrap Installation #####################
-## Install base packages + networking here (except maybe DE's/WM's).  
+## Install base packages  
 #
  
 Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac curl wget dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
@@ -178,11 +167,11 @@ virt_check
 
 genfstab -U /mnt >> /mnt/etc/fstab
 clear
-cat /mnt/etc/fstab
-input_print "Do you wish to continue to editing fstab?[y/n]: "
-read -r wish
-if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
-clear
+cat /mnt/etc/fstab | less
+#input_print "Do you wish to continue to editing fstab?[y/n]: "
+#read -r wish
+#if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
+#clear
 
 ## Editing fstab
 full_opts=$(grep subvolid=258 /mnt/etc/fstab | awk ' {print $4} ')
@@ -190,18 +179,18 @@ last_col="0  0"
 opts=$(echo $full_opts | sed "s|,subvolid=258,subvol=/@/.snapshots/1/snapshot| |")
 SUB="UUID=$ROOT_UUID \t \t /\t\t  btrfs \t $opts \t $last_col"
 sed -i "/subvolid=258/ c $SUB" /mnt/etc/fstab  ### IMPORTANT!!!! (Add -i option to sed)
-info_print "Edited fstab..."
-cat /mnt/etc/fstab
-input_print "Do you wish to continue to editing 10_linux & 20_linux_xen?[y/n]: "
-read -r wish
-if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
+#info_print "Edited fstab..."
+cat /mnt/etc/fstab | less
+#input_print "Do you wish to continue to editing 10_linux & 20_linux_xen?[y/n]: "
+#read -r wish
+#if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 
 ##  Edit 10_linux and 20_linux_xen files 
 sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/10_linux
 sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/20_linux_xen
 info_print "Edited 10_linux..."
 cat /mnt/etc/grub.d/10_linux | less
-read -n 1 -s -r -p "Continue to 20_linux...press any key...j"
+read -n 1 -s -r -p "Continue to 20_linux...press any key..."
 cat /mnt/etc/grub.d/20_linux_xen | less
 clear
 input_print "Do you wish to continue to system config without chrooting?[y/n]: "
@@ -215,6 +204,7 @@ info_print "Configuring system (timezone, system clock, GRUB)."
 # 1.Setting up the hostname.
 info_print "Setting up hostname..."
 echo "$hostname" > /mnt/etc/hostname
+cat /mnt/etc/hostname
 read -n 1 -s -r -p "Press any key to continue..."
 
 # 2. Configure selected locale, console keymap and hosts file
@@ -232,7 +222,7 @@ cat > /mnt/etc/hosts <<EOF
 127.0.1.1	$hostname.localdomain	$hostname
 EOF
 cat /mnt/etc/hosts
-clear
+read -n 1 -s -r -p "Press any key to continue..."
 
 # 3. Edit pacman.conf on newly system
 info_print "Editing pacman.conf..."
@@ -240,10 +230,9 @@ sed -i 's/#Color/Color/' /mnt/etc/pacman.conf
 sed -i '/Color/ a ILoveCandy' /mnt/etc/pacman.conf
 sed -i 's/#ParallelDownloads/ParallelDownloads/' /mnt/etc/pacman.conf
 cat /mnt/etc/pacman.conf | less
-clear
 
 # 4. Setting up root & user account
-input_print "About to enter chroot...do you wish to continue?[y/n]: "
+input_print "About to enter chroot...Do you wish to continue?[y/n]: "
 read -r wish
 if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 
@@ -257,9 +246,9 @@ if [[ -n "$username" ]]; then
 	info_print "Adding User $username to the system with root privileges."
 	arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$username"
 	info_print "Setting User password for $username."
-	echo "$username:$userpass" | arch-chroot /mnt/chpasswd
+	echo "$username:$userpass" | arch-chroot /mnt chpasswd
 fi
-input_print "Do you wish to continue?[y/n]: "
+input_print "Do you wish to continue to arch-chroot /mnt?[y/n]: "
 read -r wish
 if [ "$wish" == "n" ]; then info_print "Exiting..."; exit; fi
 
