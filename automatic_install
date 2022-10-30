@@ -70,5 +70,5 @@ function automatic_install () {
     sudo sgdisk -p $DISK
 	sleep 5
 
-    # ################### FORMATTING PARTITIONING FINISHED #####################
+    # ################### FORMATTING PARTITIONING FINISHED ####################
 }

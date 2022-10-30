@@ -125,14 +125,3 @@ case $de_choice in
 		sleep 3
 		exit		
 esac
-
-
-
-
-
-
-
-
-
-
-
