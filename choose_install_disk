@@ -31,8 +31,8 @@ done
 
 ## Check if device has partiton table
 	parted $DISK unit B print free &>dev/null > tfile.txt
-	if ( grep -q Error tfile.txt)
-		then fspace_G=$disk_space_G
+	if ( ! grep -q Error tfile.txt)
+		then fspace_G=$disk_space_G; info_print "Available Disk Space on $DISK: $fspace_G G"
 		else
    			fspace=$(sudo parted $DISK unit B print free | awk '/Free Space/{c++; sum += $3} END{if(sum <= 32212254720) print "abort"; else print sum }')
    			if (( $fspace == "abort" ))

@@ -5,26 +5,32 @@ source cosmetics
 
 function create_subvolumes () {
 
+	info_print "Mount the root BTRFS partition..."
 	mount UUID=$ROOT_UUID /mnt
+	mount | grep mnt
+	info_print "Create /mnt/@ subvolume..."
 	btrfs subvolume create /mnt/@
+	info_print "Create /mnt/@/.snapsh"
 	btrfs subvolume create /mnt/@/.snapshots
-	mkdir /mnt/@/.snapshots/1
-	btrfs subvolume create /mnt/@/.snapshots/1/snapshot
-	mkdir /mnt/@/boot
-	btrfs subvolume create /mnt/@/boot/grub
-	btrfs subvolume create /mnt/@/opt
-	btrfs subvolume create /mnt/@/root
-	btrfs subvolume create /mnt/@/srv
-	btrfs subvolume create /mnt/@/tmp
-	mkdir /mnt/@/usr
-	btrfs subvolume create /mnt/@/usr/local
-	mkdir /mnt/@/var
-	btrfs subvolume create /mnt/@/var/cache
-	btrfs subvolume create /mnt/@/var/log
-	btrfs subvolume create /mnt/@/var/spool
-	btrfs subvolume create /mnt/@/var/tmp
+    info_print "Create /mnt/@ subvolume..."
+    mkdir /mnt/@/.snapshots/1 > log.txt
+	btrfs subvolume create /mnt/@/.snapshots/1/snapshot >> log.txt
+	mkdir /mnt/@/boot >> log.txt
+	btrfs subvolume create /mnt/@/boot/grub >> log.txt
+	btrfs subvolume create /mnt/@/opt >> log.txt
+	btrfs subvolume create /mnt/@/root >> log.txt
+	btrfs subvolume create /mnt/@/srv >> log.txt
+	btrfs subvolume create /mnt/@/tmp >> log.txt
+	mkdir /mnt/@/usr >> log.txt
+	btrfs subvolume create /mnt/@/usr/local >> log.txt
+	mkdir /mnt/@/var >> log.txt
+	btrfs subvolume create /mnt/@/var/cache >> log.txt
+	btrfs subvolume create /mnt/@/var/log >> log.txt
+	btrfs subvolume create /mnt/@/var/spool >> log.txt
+	btrfs subvolume create /mnt/@/var/tmp >> log.txt
 	Date=$(date +"%Y-%m-%d %H:%M:%S")
 	touch /mnt/@/.snapshots/1/info.xml
+    info_print "Creating info.xml file"
 	cat > /mnt/@/.snapshots/1/info.xml <<EOF
 	<?xml version="1.0"?>
 	<snapshot>
@@ -35,6 +41,7 @@ function create_subvolumes () {
 	</snapshot>
 EOF  ## Do NOT change EOF location
 
+    info_print "Set default subvolume..."
 	btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
 
 	btrfs quota enable /mnt

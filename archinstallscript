@@ -43,23 +43,23 @@ ${RESET}"
 info_print "Welcome to easy-arch, a script made in order to simplify the process of installing Arch Linux."
 
 ## Setting up keyboard layout.
-until keyboard_selector; do : ; done
+#until keyboard_selector; do : ; done
 
 ## Check network connection
-check_internet
+#check_internet
 
 ## Update pacman mirrors
-update_mirrors
+#update_mirrors
 
 ## Edit pacman.conf
-edit_pacman
+#edit_pacman
 
 ## Synchronize Arch Repos
 info_print "Synchronizing pacman repositories..."
 pacman -Syy
 
 ## Set timedatectl
-timedatectl set-ntp true
+#timedatectl set-ntp true
  
 ## Choosing the target disk for installation
 choose_install_disk
@@ -78,30 +78,30 @@ until install_scheme_selector; do : ; done
    esac
 
 ## Setting up the kernel.
-until kernel_selector; do : ; done
+#until kernel_selector; do : ; done
 clear
 
 ## User choses the network.
-until network_selector; do : ; done
+#until network_selector; do : ; done
 clear
 
 ## Checking which microcode to install
-microcode_detector
+#microcode_detector
 clear
 
 ## User choses the locale.
-until locale_selector; do : ; done
+#until locale_selector; do : ; done
 clear
 
 # User choses the hostname.
-until hostname_selector; do : ; done
+#until hostname_selector; do : ; done
 clear
 
 # Ask user for the user/root passwords.
-until userpass_selector; do : ; done
+#until userpass_selector; do : ; done
 clear
 
-until rootpass_selector; do : ; done
+#until rootpass_selector; do : ; done
 clear
 
 ############### Get UUID's of EFI, SWAP, ROOT and HOME partitions #############
@@ -110,14 +110,12 @@ SWAP_UUID=$(lsblk -o UUID $SWAP_DISK | grep -v UUID)
 ROOT_UUID=$(lsblk -o UUID $ROOT_DISK | grep -v UUID)
 HOME_UUID=$(lsblk -o UUID $HOME_DISK | grep -v UUID)
 
-if [ -e UUID.txt ]; then rm UUID.txt; fi
-echo "efi_uuid=$EFI_UUID" >> UUID.txt 
+echo "efi_uuid=$EFI_UUID" > UUID.txt 
 echo "swap_uuid=$SWAP_UUID" >> UUID.txt
 echo "root_uuid=$ROOT_UUID" >> UUID.txt
 echo "home_uuid=$HOME_UUID" >> UUID.txt
-info_print "Exiting to check disk partitions!"
-sleep 5
-exit
+info_print "Disk Partition and Formatting Completed!!!!"
+sleep 3
 
 ##################### Create Subvolumes ################
 create_subvolumes
@@ -128,8 +126,7 @@ mount_and_create_mountpoints
 ##################### Mount the Subvolumes and Partitions
 mount_subvolumes_partitions
 
-info_print "Exiting temporarily to check disk partitions and formatting!"
-sleep 5
+info_print "Exiting temporarily to check disk partitions, formatting and mountpoints!"
 exit
 
 ##################### pacstrap Installation #####################
