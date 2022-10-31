@@ -7,37 +7,76 @@ source UUID.txt
 function create_subvolumes () 
 {
 
-	info_print "Mount the root BTRFS partition..."
-	sudo mount UUID="$ROOT_UUID" /mnt
-	sudo mount | grep mnt
-	info_print "Create /mnt/@ subvolume..."
-	sudo btrfs subvolume create /mnt/@
-	info_print "Create /mnt/@/.snapsh"
-	sudo btrfs subvolume create /mnt/@/.snapshots
-    info_print "Create /mnt/@ subvolume..."
-    sudo mkdir /mnt/@/.snapshots/1 > log.txt
-	sudo btrfs subvolume create /mnt/@/.snapshots/1/snapshot >> log.txt
-	sudo mkdir /mnt/@/boot >> log.txt
-	sudo btrfs subvolume create /mnt/@/boot/grub >> log.txt
-	sudo btrfs subvolume create /mnt/@/opt >> log.txt
-	sudo btrfs subvolume create /mnt/@/root >> log.txt
-	sudo btrfs subvolume create /mnt/@/srv >> log.txt
-	sudo btrfs subvolume create /mnt/@/tmp >> log.txt
-	sudo mkdir /mnt/@/usr >> log.txt
-	sudo btrfs subvolume create /mnt/@/usr/local >> log.txt
-	sudo mkdir /mnt/@/var >> log.txt
-	sudo btrfs subvolume create /mnt/@/var/cache >> log.txt
-	sudo btrfs subvolume create /mnt/@/var/log >> log.txt
-	sudo btrfs subvolume create /mnt/@/var/spool >> log.txt
-	sudo btrfs subvolume create /mnt/@/var/tmp >> log.txt
+	info_print "Mounting the root BTRFS partition..."
+	sudo mount UUID="$ROOT_UUID" /mnt &>/dev/null
+
+	info_print "Create subvolume/mnt/@ "
+	sudo btrfs subvolume create /mnt/@ &>/dev/null
+
+	info_print "Create subvolume /mnt/@/.snapshots"
+	sudo btrfs subvolume create /mnt/@/.snapshots &>/dev/null
+
+    info_print "Create directory /mnt/@/.snapshots/1..."
+    sudo mkdir /mnt/@/.snapshots/1 &>/dev/null
+
+	info_print "Create subvolume /mnt/@/.snapshots/1/snapshot"
+	sudo btrfs subvolume create /mnt/@/.snapshots/1/snapshot &>/dev/null
+
+	info_print "Create directory /mnt/@/boot"
+	sudo mkdir /mnt/@/boot &>/dev/null
+
+	info_print "Create subvolume /mnt/@/boot/grub"
+	sudo btrfs subvolume create /mnt/@/boot/grub &>/dev/null
+
+	info_print "Create subvolume /mnt/@/opt"
+	sudo btrfs subvolume create /mnt/@/opt &>/dev/null
+
+	info_print "Create subvolume /mnt/@/root"
+	sudo btrfs subvolume create /mnt/@/root &>/dev/null
+
+	info_print "Create subvolume /mnt/@/srv"
+	sudo btrfs subvolume create /mnt/@/srv &>/dev/null
+
+	info_print "Create subvolume /mnt/@/tmp"
+	sudo btrfs subvolume create /mnt/@/tmp &>/dev/null
+
+	info_print "Create directory /mnt/@/usr"
+	sudo mkdir /mnt/@/usr &>/dev/null
+
+	info_print "Create subvolume /mnt/@/usr/local"
+	sudo btrfs subvolume create /mnt/@/usr/local &>/dev/null
+
+	info_print "Create directory /mnt/@/var"
+	sudo mkdir /mnt/@/var &>/dev/null
+
+	info_print "Create subvolume /mnt/@/var/cache"
+	sudo btrfs subvolume create /mnt/@/var/cache &>/dev/null
+
+	info_print "Create subvolume /mnt/@/var/log"
+	sudo btrfs subvolume create /mnt/@/var/log &>/dev/null
+
+	info_print "Create subvolume /mnt/@/var/spool"
+	sudo btrfs subvolume create /mnt/@/var/spool &>/dev/null
+
+	info_print "Create subvolume /mnt/@/var/tmp"
+	sudo btrfs subvolume create /mnt/@/var/tmp &>/dev/null
+
     info_print "Creating info.xml file"
 	Date=$(date +"%Y-%m-%d %H:%M:%S")
-	sed -i "s|temp|$Date|g" info.xml	
+	sed "s|temp|$Date|g" info-dummy.xml > info.xml	
 	sudo cp info.xml /mnt/@/.snapshots/1/
-
+	info_print "Showing you info.xml from /mnt/@/.snapshots/1/info.xml"
+	cat /mnt/@/.snapshots/1/info.xml
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
     info_print "Set default subvolume..."
 	sudo btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
-
+	info_print "The default subvolume is..."
+	sudo btrfs subvolume get-default /mnt
+	input_print "Press any key to continue..."
+	read -n 1 -s -r 
+	
+	info_print "Enabling quota and disabling CoW..."
 	sudo btrfs quota enable /mnt
 	sudo chattr +C /mnt/@/var/cache
 	sudo chattr +C /mnt/@/var/log
@@ -46,5 +85,7 @@ function create_subvolumes ()
 	
 	info_print "Created  subvolumes on /mnt: (sudo btrfs subvolume list /mnt)"
 	sudo btrfs subvolume list /mnt
+	input_print "Press any key to continue..."
+	read -n 1 -s -r 
 	sudo umount /mnt
 }

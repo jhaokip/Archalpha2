@@ -123,7 +123,7 @@ clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
 mount_and_create_mountpoints
-pacman -S --noconfirm tree
+pacman -S --noconfirm tree &>/dev/null
 clear
 
 info_print "The following mountpoints were just created:"
@@ -258,7 +258,7 @@ info_print "NOTE: You will be greeted with a black tty1. Desktop Environments li
 info_print "       GNOME, KDE, XFCE or WM's etc are not yet installed!" 
 info_print ""
 info_print ""
-info_print "You are now ready to reboot...press any to continue..."
+info_print "You are now ready to reboot...press any key to continue..."
 read -n 1 -s -r
 exit
 
