@@ -64,11 +64,26 @@ function create_subvolumes ()
     info_print "Creating info.xml file"
 	Date=$(date +"%Y-%m-%d %H:%M:%S")
 	sed "s|temp|$Date|g" info-dummy.xml > info.xml	
+	info_print "info.xml before copying to /mnt/@/.snapshots/1/"
+	read -n 1 -s -r -p "Press any key to continue..."
+	info_print ""
+	if [ -f info.xml ]; then info_print "info.xml file exists";
+		else info_print "info.xml does not exist!"; fi
+
 	sudo cp info.xml /mnt/@/.snapshots/1/
 	info_print "Showing you info.xml from /mnt/@/.snapshots/1/info.xml"
 	cat /mnt/@/.snapshots/1/info.xml
-	input_print "Press any key to continue..."
-	read -n 1 -s -r
+	fown=$(ls -al /mnt/@/.snapshots/1/)
+	info_print "info.xml attributes: $fown"
+	info_print ""
+	wish="y"
+	input_print "Do you wish to change file attributes?[y/n]: "
+	read wish
+	if [ "$wish"=="y" ]
+		then
+			sudo chown root:root /mnt/@/.snapshots/1/info.xml
+	fi
+	
     info_print "Set default subvolume..."
 	sudo btrfs subvolume set-default $(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+') /mnt
 	info_print "The default subvolume is..."

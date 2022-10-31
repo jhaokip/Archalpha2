@@ -167,13 +167,13 @@ clear
 ## Editing fstab
 full_opts=$(grep subvolid=258 /mnt/etc/fstab | awk ' {print $4} ')
 last_col="0  0"
-opts=$(echo $full_opts | sed "s|,subvolid=258,subvol=/@/.snapshots/1/snapshot| |")
+opts=$(echo $full_opts | sed "s|,subvolid=258,subvol=/@/.snapshots/1/snapshot||")
 SUB="UUID=$ROOT_UUID \t \t /\t\t  btrfs \t $opts \t $last_col"
 sed -i "/subvolid=258/ c $SUB" /mnt/etc/fstab
 
 ##  Edit 10_linux and 20_linux_xen files 
-sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/10_linux
-sed -i 's/rootflags=subvol=${rootsubvol}/ /g' /mnt/etc/grub.d/20_linux_xen
+sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/10_linux
+sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/20_linux_xen
 
 #################### System configurations without chrooting ##########
 info_print "Configuring system (timezone, system clock, GRUB)."
@@ -226,12 +226,43 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	 hwclock --systohc
 
 	# 4. Initialize Snapper
+	echo "Initializing Snapper"
+	mount
+	read -n 1 -s -r -p "Press any key to continue..."
+	
+	echo "Btrfs subvolume list..."
+	btrfs subvolume list /
+	read -n 1 -s -r -p "Press any key to continue..."
+	clear	
+	
 	umount /.snapshots
 	rm -r /.snapshots
+	echo "Btrfs subvolume list /"
+	read -n 1 -s -r -p "Press any key to continue..."
+	mount
+	read -n 1 -s -r -p "Press any key to continue..."
+
+	echo "Creating snapper root config..."
 	snapper --no-dbus -c root create-config /
+
+	echo "Btrfs subvolume list..."
+	btrfs subvolume list /
+	read -n 1 -s -r -p "Press any key to continue..."
+
+	echo "Deleting the subvolume automatically created by snapper..."
 	btrfs subvolume delete /.snapshots
+
+	echo "Btrfs subvolume list..."
+	btrfs subvolume list /
+	read -n 1 -s -r -p "Press any key to continue..."
+
+	echo "Create /.snapshots directory..."
 	mkdir /.snapshots
+	clear
+
 	mount -a
+	mount
+	read -n 1 -s -r -p "Press any key to continue..."
 	chmod 750 /.snapshots
 
 	# 4. Generating locales

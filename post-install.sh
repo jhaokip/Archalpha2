@@ -63,7 +63,7 @@ graphical_env_installer () {
 		read -n 1 -s -r
 		;;
   esac
-
+}
 until de_selector; do : ; done
 graphical_env_installer
 
@@ -108,7 +108,7 @@ read -n 1 -s -r
 # Edit snapper configuration file"
 info_print "About to move snapper configs from root to home..."
 sudo mv /etc/snapper/configs/root .
-if [ -f root]; then info_print "config exists on home"; else info_print "Fails!"; fi
+if [ -f root ]; then info_print "config exists on home"; else info_print "Fails!"; fi
 read -n 1 -s -r -p "Press any key to continue..."
 
 cat root | less
