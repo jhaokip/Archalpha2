@@ -7,8 +7,9 @@ source UUID.txt ## UUID.txt stores efi, swap, root and home UUID's
 # Post installation script
 # (You are now logged in as $USER)
 ######################################################################################## 
+cosmetics
 
-# 1. Enable AUR Helper (paru-bin)
+# Enable AUR Helper (paru-bin)
 sudo pacman -Syy
 mkdir AUR
 cd AUR
@@ -16,23 +17,13 @@ git clone https://aur.archlinux.org/paru-bin.git
 cd paru-bin
 makepkg -sic
 
-
-# 2. Enable Snapshots in GRUB Menum
+# Enable booting from Snapshots in GRUB Menu
 paru -Sa --noconfirm snap-pac-grub
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
-
-# 3. Create First Snapshot
-sudo snapper -v -c root create -t single -d "***Initial Base System Configuration***"
-
-# 4. Enable Periodic Execution of btrfs scrub
-output=$(sudo systemd-escape --template btrfs-scrub@.timer --path /dev/disk/by-uuid/$root_uuid)
-sudo systemctl enable $output
-sudo systemctl start $output
-
-sudo mv /etc/snapper/configs/root . 
-
 # 5. Edit Snapper Configuration file
+sudo mv /etc/snapper/configs/root .
+
 sed -i 's|QGROUP=""|QGROUP="1/0"|' root
 sed -i 's|NUMBER_LIMIT="50"|NUMBER_LIMIT="10-35"|' root
 sed -i 's|NUMBER_LIMIT_IMPORTANT="50"|NUMBER_LIMIT_IMPORTANT="15-25"|' root
@@ -43,24 +34,51 @@ sed -i 's|TIMELINE_LIMIT_MONTHLY="10"|TIMELINE_LIMIT_MONTHLY="3"|' root
 sed -i 's|TIMELINE_LIMIT_YEARLY="10"|TIMELINE_LIMIT_YEARLY="0"|' root
 
 sudo mv root /etc/snapper/configs/
+clear
 
-# 6. Enable the timeline snapshots timer
+# Enable & Start Periodic Execution of btrfs scrub
+output=$(sudo systemd-escape --template btrfs-scrub@.timer --path /dev/disk/by-uuid/$root_uuid)
+info_print "Brtfs scrub: $output"
+input_print "Press any key to continue..."
+read -n 1 -s -r
+clear
+
+sudo systemctl enable $output
+sudo systemctl start $output
+clear
+
+sudo systemctl status $output
+input_print "Press any key to continue..."
+read -n 1 -s -r
+clear
+
+# 6. Enable and Start the timeline snapshots timer
 sudo systemctl enable snapper-timeline.timer
-
-# 7. Start the timeline snapshots timer
 sudo systemctl start snapper-timeline.timer
+clear
 
-# 8. Enable the timeline cleanup timer
+info_print "Snapper-timeline status: "
+sudo systemctl status snapper-timeline.timer
+input_print "Press any key to continue..."
+read -n 1 -s -r
+clear
+
+# 7. Enable and Start  the timeline cleanup timer
 sudo systemctl enable snapper-cleanup.timer
-
-# 9. Start the timeline cleanup timer
 sudo systemctl start snapper-cleanup.timer
+clear
+
+info_print "Snapper-cleanup status: "
+sudo systemctl status snapper-cleanup.timer
+input_print "Press any key to continue..."
+read -r 1 -s -r
+clear
 
 # 10. Installing DE/WM
 
 de_selector () {
 
-	info_print "***** Choose your Desktop Environment *******"
+	info_print "******** Choose your Desktop Environment *******"
 	info_print "List of Desktop Environment:"
 	info_print "1. GNOME"
 	info_print "2. KDE"
@@ -79,15 +97,16 @@ de_selector () {
 until de_selector; do : ;
 
 case $de_choice in
-	1)  info_print "Installing GNOME..."
+	1)  info_print "Installing GNOME Desktop Environment..."
 		sudo pacman -S --noconfirm --needed xorg gnome gnome-extra gdm
 		sudo systemctl enable gdm
 		sudo systemctl start gdm 
 		info_print "Installation is now complete! Enjoy!"
-		read -n 1 -s -r -p "Press any key to continue..."
-		info_print ""
+		sudo snapper -v -c root create -t single -d "*** Base System Configuration ***"
+		input_print "Press any key to continue..."
+		read -n 1 -s -r
 		clear
-		info_print "Rebooting in 5 seconds..."
+		info_print "Rebooting in 5 seconds...or exit"
 		sleep 5
 		sudo reboot
 		;;
@@ -96,10 +115,11 @@ case $de_choice in
 		sudo systemctl enable sddm
 		sudo systemctl start sddm
 		info_print "Installation is now complete! Enjoy!"
-		read -n 1 -s -r -p "Press any key to continue..."
-		info_print ""
+		sudo snapper -v -c root create -t single -d "*** Base System Configuration ***"
+		input_print "Press any key to continue..."
+		read -n 1 -s -r
 		clear
-		info_print "Rebooting in 5 seconds..."
+		info_print "Rebooting in 5 seconds...or exit "
 		sleep 5
 		sudo reboot
 		;;
@@ -114,14 +134,26 @@ case $de_choice in
 		echo "## Start i3" >> .xinitrc
 		echo "exec i3" >> .xinitrc
 		info_print "Installation is now complete! Enjoy!"
-		read -n 1 -s -r -p "Press any key to continue..."
-		info_print ""
+		sudo snapper -v -c root create -t single -d "*** Base System Configuration ***"
+		input_print "Press any key to continue..."
+		read -n 1 -s -r
 		clear
-		info_print "Rebooting in 5 seconds..."
+		info_print "Rebooting in 5 seconds...or exit "
 		sleep 5
 		sudo reboot
 		;;
-	4)  info_print "You're now on your own. Enjoy!"
-		sleep 3
+	4)  
+		info_print "Base system configuration is over."
+		info_print "HOWEVER, once you're done installing DE's, packages etc.."
+		info_print "IMPORTANT: You must run the following command, BEFORE rebooting."
+		info_print "sudo snapper -v -c root create -t single -d \"*** Base System Configuration ***\""
+		info_print "This will take a snapshot of your working system that you can always"
+		info_print "revert back to this initial state."
+		info_print "NOTE: You may want to write down the above command somewhere..."
+		input_print "Press any key to exit..."
+		read -n 1 -s -r
+		info_print ""
+		info_print "BYE!"
+		sleep 2
 		exit		
 esac

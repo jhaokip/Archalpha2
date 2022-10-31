@@ -6,7 +6,7 @@ function install_scheme_selector () {
 	   clear
        info_print ""
        info_print ""
-       info_print "                          LIST OF INSTALLATION SCHEMES:"
+       info_print "                                LIST OF INSTALLATION SCHEMES:"
        info_print ""
        info_print "1) CLEAN INSTALL: This will wipe all existing OS's/distros and partitions. Minimum storage size: 30 GiB."
        info_print ""
