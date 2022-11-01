@@ -109,10 +109,18 @@ sudo mv /etc/snapper/configs/root .
 if [ -f root ]; then info_print "config exists on home"; else info_print "Fails!"; fi
 info_print "Showing you snapper root config attributes..."
 ls -al | root
-input_print "Do you wish to edit root attributes?[y/n]: "
 read -n 1 -s -r -p "Press any key to continue..."
-
+info_print "Showing you snapper root config before editing..."
+read -n 1 -s -r -p "Press any key to continue..."
 cat root | less
+
+input_print "Do you wish to edit root attributes?[y/n]: "
+read -r wish
+if [ "$wish"=="y" ] 
+	then sudo chown $USER:$USER root
+fi
+info_print "About to edit snapper root configs via sed...3 seconds..."
+sleep 3
 sed -i 's|QGROUP=""|QGROUP="1/0"|' root
 sed -i 's|NUMBER_LIMIT="50"|NUMBER_LIMIT="10-35"|' root
 sed -i 's|NUMBER_LIMIT_IMPORTANT="50"|NUMBER_LIMIT_IMPORTANT="15-25"|' root
@@ -122,13 +130,15 @@ sed -i 's|TIMELINE_LIMIT_WEEKLY="0"|TIMELINE_LIMIT_WEEKLY="2"|' root
 sed -i 's|TIMELINE_LIMIT_MONTHLY="10"|TIMELINE_LIMIT_MONTHLY="3"|' root
 sed -i 's|TIMELINE_LIMIT_YEARLY="10"|TIMELINE_LIMIT_YEARLY="0"|' root
 
-info_print "Showing EDITED snapper configs in home..."
+info_print "Showing EDITED snapper configs in home...in 3 seconds"
+sleep 3
 cat root | less
-info_print "About to move snapper configs back to root..."
+info_print "About to move snapper configs back to root...in 3 seconds"
+sleep 3
 sudo mv root /etc/snapper/configs/
-info_print "Confirm move works by cat'ng from root..."
+info_print "Confirm move works by cat'ng from root...in 3 seconds"
+sleep 3
 cat /etc/snapper/configs/root | less
-clear
 sudo grub-mkconfig -o /boot/grub/grub.cfg
-
+clear
 
