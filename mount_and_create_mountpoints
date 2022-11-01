@@ -1,7 +1,7 @@
 #####################################################################################
 #
 # Mount the ROOT BTRFS Filesystem 
-# Create Mountpoints for BTRFS Subvolumes
+# Create Mountpoints for BTRFS Subvolumes on ROOT
 #
 ######################################################################################
 source cosmetics
@@ -11,7 +11,8 @@ function mount_and_create_mountpoints () {
 
 	mount UUID="$ROOT_UUID" -o compress=zstd /mnt
 
-########### Make Mountpoints for Subvolumes
+    ### Make Mountpoints for Subvolumes
+	info_print "Creating mountpoints for subvolumes inside root; home and efi..."
 
 	sudo mkdir /mnt/.snapshots
 	sudo mkdir -p /mnt/boot/grub

@@ -15,7 +15,7 @@ function clean_install () {
 		error_print "Quitting Arch Install Script...."
 		exit
 	fi
-
+	clear
 	
     DISK_SIZE=disk_space_G ## assign total disk space size to DISK_SIZE
     M="M"
@@ -48,16 +48,16 @@ function clean_install () {
     ROOT_SIZE=$(echo $SWAP_ROOT | sed 's/G//g' | awk ' {print $2}')
     HOME_SIZE=0
 
-
-    info_print "WIPING $DISK ...., please wait"
-    
     ## Wipe all existing partitions on the installation disk
+    info_print "WIPING $DISK, please wait..."
     sudo wipefs --all $DISK &>/dev/null
    
 	# create gpt label on newly created disk
+	info_print "Creating a new GPT Partition Table..."
 	sudo sgdisk -o $DISK &>/dev/null
  
     ## Create necessary partitions using sgdisk 
+	info_print "Partitioning..."
     sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
 
 
@@ -68,17 +68,26 @@ function clean_install () {
    #################### DISK PARTITIONING FINISHED ###########################
     
     ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+	info_print "Formatting EFI Partition as fat32 filesystem..."
     sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
     #
     # Format SWAP Partition with filesystem label Arch-SWAP
+	info_print "Creating SWAP partition..."
     sudo mkswap -L Arch-SWAP $SWAP_DISK
     #
     # Format ROOT Partition with filesystem label Arch-ROOT
+	info_print "Formatting ROOT partition as btrfs filesystem..."
     sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
     #
     # Format HOME Partition with filesystem label Arch-HOME
+	info_print "Formatting HOME partition as ext4 filesystem..."
     sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
-    #
+	
+	info_print "Formatting partitions..."
+	sleep 3
+
+    # Printing out partition layout
+	info_print "Partition layout..."
     sudo sgdisk -p $DISK
 	sleep 4
 	

@@ -108,7 +108,7 @@ info_print "About to move snapper configs from root to home..."
 sudo mv /etc/snapper/configs/root .
 if [ -f root ]; then info_print "config exists on home"; else info_print "Fails!"; fi
 info_print "Showing you snapper root config attributes..."
-ls -al | root
+ls -al | grep root
 read -n 1 -s -r -p "Press any key to continue..."
 info_print "Showing you snapper root config before editing..."
 read -n 1 -s -r -p "Press any key to continue..."

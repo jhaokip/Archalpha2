@@ -44,9 +44,11 @@ function automatic_install () {
     HOME_SIZE=0
 
     info_print "ESP:$EFI_SIZE$M SWAP:$SWAP_SIZE$G ROOT:$ROOT_SIZE$G HOME:$HOME_SIZE "
-
-	
+	input_print "Press any key to continue..."
+	read -n 1 -s -r 
+	info_print ""	
     ## Create necessary partitions using sgdisk
+	info_print " Partitioning..."
     sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
 
 	## Informing the Kernel of the changes.
@@ -56,19 +58,27 @@ function automatic_install () {
 	#################### DISK PARTITIONING FINISHED ###########################
 
     ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+	info_print "Formatting EFI Partition as fat32 filesystem..."
     sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
     #
     # Format SWAP Partition with filesystem label Arch-SWAP
+	info_print "Creating SWAP partition..."
     sudo mkswap -L Arch-SWAP $SWAP_DISK
     #
     # Format ROOT Partition with filesystem label Arch-ROOT
+	info_print "Formatting ROOT partition with btrfs filesystem..."
     sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
     #
     # Format HOME Partition with filesystem label Arch-HOME
+	info_print "Formatting HOME partition as ext4 filesystem..."
     sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
-    #
-    sudo sgdisk -p $DISK
-	sleep 5
+    info_print "Formatting completed..." 
+	sleep 3
 
+	info_print "Printing partition table..."
+    sudo sgdisk -p $DISK
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
     # ################### FORMATTING PARTITIONING FINISHED ####################
 }

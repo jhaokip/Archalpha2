@@ -46,5 +46,9 @@ done
                     info_print "Available free space on $DISK : $fspace_G GiB"
            fi
     fi
+ input_print "Press any key to continue..."
+ read -n 1 -s -r
+ info_print ""
+
 }
 

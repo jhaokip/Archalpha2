@@ -60,6 +60,7 @@ info_print "Synchronizing pacman repositories..."
 pacman -Syy &>/dev/null
 
 ## Set timedatectl
+info_print "Setting timedatectl..."
 timedatectl set-ntp true
 clear
  
@@ -99,11 +100,14 @@ clear
 
 # User choses the hostname.
 until hostname_selector; do : ; done
+clear
 
 # Ask user for the user/root passwords.
 until userpass_selector; do : ; done
+clear
 
 until rootpass_selector; do : ; done
+clear
 
 ############### Get UUID's of EFI, SWAP, ROOT and HOME partitions #############
 EFI_UUID=$(lsblk -o UUID $EFI_DISK | grep -v UUID)
@@ -115,7 +119,6 @@ echo "efi_uuid=$EFI_UUID" > UUID.txt
 echo "swap_uuid=$SWAP_UUID" >> UUID.txt
 echo "root_uuid=$ROOT_UUID" >> UUID.txt 
 echo "home_uuid=$HOME_UUID" >> UUID.txt
-clear
 
 ##################### Creating Subvolumes ################
 create_subvolumes
@@ -149,6 +152,7 @@ clear
  
 Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
 pacstrap /mnt $Base_Packages
+clear
 info_print "Base packages installation done..."
 input_print "Press any key to continue..."
 read -n 1 -s -r
@@ -182,6 +186,7 @@ sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/20_linux_xen
 info_print "Configuring system..."
 
 # 1.Setting up the hostname.
+info_print "Setting hostname..."
 echo "$hostname" > /mnt/etc/hostname
 
 # 2. Configure selected locale, console keymap and hosts file
@@ -216,11 +221,14 @@ if [[ -n "$username" ]]; then
 	info_print "Setting User password for $username."
 	echo "$username:$userpass" | arch-chroot /mnt chpasswd
 fi
+input_print "Press any key to continue..."
+read -n 1 -s -r
+info_print ""
 
 #### Main chroot section
+info_print "Settings inside arch-chroot..."
 arch-chroot /mnt /bin/bash -e <<EOF
 	# 1. Setting up timezone
-	echo "Inside Chroot: Setting up time zone..."
 	ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc/localtime &>/dev/null
 
 	pacman -Syy
@@ -229,43 +237,12 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	 hwclock --systohc
 
 	# 4. Initialize Snapper
-	echo "Initializing Snapper"
-	mount
-	read -n 1 -s -r -p "Press any key to continue..."
-	
-	echo "Btrfs subvolume list..."
-	btrfs subvolume list /
-	read -n 1 -s -r -p "Press any key to continue..."
-	clear	
-	
 	umount /.snapshots
 	rm -r /.snapshots
-	echo "Btrfs subvolume list /"
-	read -n 1 -s -r -p "Press any key to continue..."
-	mount
-	read -n 1 -s -r -p "Press any key to continue..."
-
-	echo "Creating snapper root config..."
 	snapper --no-dbus -c root create-config /
-
-	echo "Btrfs subvolume list..."
-	btrfs subvolume list /
-	read -n 1 -s -r -p "Press any key to continue..."
-
-	echo "Deleting the subvolume automatically created by snapper..."
 	btrfs subvolume delete /.snapshots
-
-	echo "Btrfs subvolume list..."
-	btrfs subvolume list /
-	read -n 1 -s -r -p "Press any key to continue..."
-
-	echo "Create /.snapshots directory..."
 	mkdir /.snapshots
-	clear
-
 	mount -a
-	mount
-	read -n 1 -s -r -p "Press any key to continue..."
 	chmod 750 /.snapshots
 
 	# 4. Generating locales
@@ -278,18 +255,20 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	
 	exit
 EOF
+info_print "Exiting from chroot..."
+
 # Copy post-install script (including related files, if any)
 sudo cp post-install.sh /mnt/home/$username/
 sudo cp UUID.txt /mnt/home/$username/
 sudo cp cosmetics /mnt/home/$username/
 sudo umount -a &>/dev/null
 clear
-info_print "Installation Complete!"
+info_print "                   Installation Complete!"
 info_print "But, you must still run the post-install.sh script after reboot!"
 info_print "After reboot, Log back in as your username (not root!)."
-info_print "Once logged in, run the script: ./postinstall.sh"
-info_print "NOTE: You will be greeted with a black tty1. Desktop Environments like "
-info_print "       GNOME, KDE, XFCE or WM's etc are not yet installed!" 
+info_print "Once logged in, run the script: ./post-install.sh"
+info_print "NOTE: You will be greeted with a black getty1. Desktop Environments like "
+info_print "      GNOME, KDE or WM's etc are not yet installed!" 
 info_print ""
 info_print ""
 info_print "You are now ready to reboot...press any key to continue..."

@@ -23,6 +23,7 @@ function manual_install () {
     ROOT_DISK=$DISK$((n+3))
     HOME_DISK=$DISK$((n+4))
 
+	clear
 
     info_print "###################### MANUAL DISK PARTITION ########################"
 	info_print ""
@@ -31,6 +32,11 @@ function manual_install () {
 	info_print "   iii) ROOT Partition     iv) HOME Partition"
 	info_print ""
 	info_print ""
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
+	clear
+
 	info_print "    ********************** 1. ESP/EFI PARTITION *******************"
 	info_print " *  ESP/EFI Partition : A separate ESP/EFI of MINIMUM SIZE 512 MiB is MANDATORY."
 	info_print "    It will be a dedicated ESP/EFI partition for this Arch installation."
@@ -40,11 +46,10 @@ function manual_install () {
 	info_print "    Examples: Valid Input - 512, 600, 700 etc"
 	info_print "              Invalid Input - 512M, 0.5G, 600.00 etc "
 	info_print ""
-	## Ask user for ESP/EFI size
 	loop_flag="n"
 	while [[ $loop_flag == "n" ]]
 	do
-	    input_print "    Please enter your desired ESP/EFI size (in MiB only): "
+	    input_print "    Please enter your desired ESP/EFI size (Min 512 MiB only): "
 	    read -r EFI_SIZE
 	    clear
 	     if [[ -n ${EFI_SIZE//[0-9]/} ]]
@@ -57,6 +62,11 @@ function manual_install () {
  	           info_print "    You have SUCCESSFULLY allocated $EFI_SIZE MiB to ESP/EFI Partition."
  	     fi
 	done
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
+	clear
+
 	info_print ""
 	info_print ""
 	info_print "    *********************** 2. SWAP PARTITION ********************"
@@ -85,7 +95,11 @@ function manual_install () {
 	            info_print "    You have SUCCESSFULLY allocated $SWAP_SIZE GiB to SWAP Partition."
 	      fi
 	done
-	
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
+	clear
+
 	info_print ""
 	info_print ""
 	info_print "    *********************** 3. ROOT PARTITION ********************"
@@ -115,7 +129,11 @@ function manual_install () {
 	            info_print "    You have SUCCESSFULLY allocated $ROOT_SIZE GiB to ROOT Partition."
 	      fi
 	done
-	
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
+	clear
+
 	info_print ""
 	info_print ""
 	info_print "    *********************** 4. HOME PARTITION ********************"
@@ -146,7 +164,11 @@ function manual_install () {
 	            info_print "    You have SUCCESSFULLY allocated $HOME_SIZE GiB to HOME Partition."
 	      fi
 	done
-	
+
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
+	info_print ""
+	clear	
 	info_print ""
 	info_print ""
 
@@ -174,9 +196,14 @@ function manual_install () {
 		info_print "ROOT: $ROOT_SIZE$G"
 		info_print "HOME: $(( fspace_G - size_alloc_G ))$G"
 	fi
-	
-	read -n 1 -s -r -p "Press any key to continue..."
+
+
+	input_print "Press any key to continue..."	
+	read -n 1 -s -r
+	info_print ""
+
     ## Create necessary partitions using sgdisk
+	info_print "Partitioning..."
     sudo sgdisk -n 0:0:+$EFI_SIZE$M -t 0:ef00 -c 0:ESP -n 0:0:+$SWAP_SIZE$G -t 0:8200 -c 0:SWAP -n 0:0:+$ROOT_SIZE$G -t 0:8300 -c 0:ROOT -n 0:0:0 -t 0:8300 -c 0:HOME $DISK
 
 	## Informing the Kernel of the changes.
@@ -186,19 +213,26 @@ function manual_install () {
     #################### DISK PARTITIONING FINISHED ###########################
 
     ## Format ESP/EFI Partition as FAT32 with filesystem label Arch-EFI
+	info_print "Formatting EFI Partition as fat32 filesystem..."
     sudo mkfs.vfat -F 32 -n Arch-EFI $EFI_DISK
     #
     # Format SWAP Partition with filesystem label Arch-SWAP
+	info_print "Creating SWAP partition..."
     sudo mkswap -L Arch-SWAP $SWAP_DISK
     #
     # Format ROOT Partition with filesystem label Arch-ROOT
+	info_print "Formatting ROOT partition with btrfs filesystem..."
     sudo mkfs.btrfs -L Arch-ROOT -f -n 32k $ROOT_DISK
     #
     # Format HOME Partition with filesystem label Arch-HOME
+	info_print "Formatting HOME partition with ext4 filesystem..."
     sudo mkfs.ext4 -L Arch-HOME $HOME_DISK
+	clear
     #
+	info_print "Printing partition table..."
     sudo sgdisk -p $DISK
-    sleep 4
 
+	input_print "Press any key to continue..."
+	read -n 1 -s -r 
     # ################### FORMATTING PARTITIONING FINISHED #####################
 }
