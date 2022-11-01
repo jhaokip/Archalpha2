@@ -90,25 +90,26 @@ read -n 1 -s -r -p "Press any key to continue..."
 output=$(sudo systemd-escape --template btrfs-scrub@.timer --path /dev/disk/by-uuid/$root_uuid)
 sudo systemctl enable $output
 sudo systemctl start $output
-clear
 
 # Enable and Start the timeline snapshots timer
 sudo systemctl enable snapper-timeline.timer
 sudo systemctl start snapper-timeline.timer
-clear
 
 # Enable and Start  the timeline cleanup timer
 sudo systemctl enable snapper-cleanup.timer
 sudo systemctl start snapper-cleanup.timer
-clear
 
 input_print "Press any key to continue..."
 read -n 1 -s -r 
+clear
 
 # Edit snapper configuration file"
 info_print "About to move snapper configs from root to home..."
 sudo mv /etc/snapper/configs/root .
 if [ -f root ]; then info_print "config exists on home"; else info_print "Fails!"; fi
+info_print "Showing you snapper root config attributes..."
+ls -al | root
+input_print "Do you wish to edit root attributes?[y/n]: "
 read -n 1 -s -r -p "Press any key to continue..."
 
 cat root | less

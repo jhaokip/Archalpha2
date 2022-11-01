@@ -123,7 +123,7 @@ clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
 mount_and_create_mountpoints
-pacman -S --noconfirm tree
+pacman -S --noconfirm tree >/dev/null
 clear
 
 info_print "The following mountpoints were just created:"
@@ -136,7 +136,7 @@ clear
 ##################### Mount the Subvolumes and Partitions
 mount_subvolumes_partitions
 clear
-info_print "Verify disk partitions, formatting and mountpoints!"
+info_print "Verify partitions, formatting and mountpoints!"
 sudo lsblk $DISK -o NAME,SIZE,FSTYPE,MOUNTPOINTS
 input_print "Press any key to continue..."
 read n -1 -s -r 
@@ -149,10 +149,14 @@ clear
  
 Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
 pacstrap /mnt $Base_Packages
+info_print "Base packages installation done..."
+input_print "Press any key to continue..."
+read -n 1 -s -r
 clear
 
 ## Installing Network utilites
 network_installer
+clear
 
 ## Virtualization check & installing necessary packages (must come afer pacstrap /mnt)
 virt_check
@@ -162,7 +166,6 @@ clear
 # Generate_fstab
 info_print "Generating fstab"
 genfstab -U /mnt >> /mnt/etc/fstab
-clear
 
 ## Editing fstab
 full_opts=$(grep subvolid=258 /mnt/etc/fstab | awk ' {print $4} ')
@@ -176,7 +179,7 @@ sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/10_linux
 sed -i 's/rootflags=subvol=${rootsubvol}//g' /mnt/etc/grub.d/20_linux_xen
 
 #################### System configurations without chrooting ##########
-info_print "Configuring system (timezone, system clock, GRUB)."
+info_print "Configuring system..."
 
 # 1.Setting up the hostname.
 echo "$hostname" > /mnt/etc/hostname
@@ -266,7 +269,7 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	chmod 750 /.snapshots
 
 	# 4. Generating locales
-	locale-gen &>/dev/null
+	locale-gen
 	
 	# 5. Installing GRUB.
 	echo "Inside chroot: Installing GRUB..."

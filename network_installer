@@ -4,20 +4,20 @@
 function network_installer () {
 	
 	case $network_choice in
-		1 ) info_print "Installing and enabling IWD."
+		1 ) info_print "Installing and enabling IWD. Please wait..."
 			pacstrap /mnt iwd >/dev/null
 			systemctl enable iwd --root=/mnt &>/dev/null
 			;;
-        2 ) info_print "Installing and enabling NetworkManager."
+        2 ) info_print "Installing and enabling NetworkManager. Please wait..."
             pacstrap /mnt networkmanager >/dev/null
             systemctl enable NetworkManager --root=/mnt &>/dev/null
             ;;
-        3 ) info_print "Installing and enabling wpa_supplicant and dhcpcd."
+        3 ) info_print "Installing and enabling wpa_supplicant and dhcpcd. Please wait..."
             pacstrap /mnt wpa_supplicant dhcpcd >/dev/null
             systemctl enable wpa_supplicant --root=/mnt &>/dev/null
             systemctl enable dhcpcd --root=/mnt &>/dev/null
             ;;
-        4 ) info_print "Installing dhcpcd."
+        4 ) info_print "Installing dhcpcd. Please wait..."
             pacstrap /mnt dhcpcd >/dev/null
             systemctl enable dhcpcd --root=/mnt &>/dev/null
     esac

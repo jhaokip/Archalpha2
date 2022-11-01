@@ -5,7 +5,8 @@ source cosmetics
 source UUID.txt
 
 function mount_subvolumes_partitions () {
-
+	
+	info_print "Mounting ROOT subvolumes, HOME and swapon..."
 	sudo mount UUID="$ROOT_UUID" -o subvol=@/.snapshots,compress=zstd /mnt/.snapshots 
 	sudo mount UUID="$ROOT_UUID" -o subvol=@/boot/grub,compress=zstd /mnt/boot/grub
 	sudo mount UUID="$ROOT_UUID" -o subvol=@/opt,compress=zstd /mnt/opt
@@ -20,5 +21,7 @@ function mount_subvolumes_partitions () {
 	sudo mount UUID="$EFI_UUID" /mnt/efi
 	sudo mount UUID="$HOME_UUID" /mnt/home
 	sudo swapon UUID="$SWAP_UUID"
+	input_print "Press any key to continue..."
+	read -n 1 -s -r
 
 }
