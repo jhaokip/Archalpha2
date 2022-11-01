@@ -123,7 +123,7 @@ clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
 mount_and_create_mountpoints
-pacman -S --noconfirm tree &>/dev/null
+pacman -S --noconfirm tree
 clear
 
 info_print "The following mountpoints were just created:"
