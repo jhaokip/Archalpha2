@@ -70,57 +70,49 @@ graphical_env_installer
 #####################################################################
 
 # Enable AUR Helper (paru-bin)
+info_print "Updating pacman repositories..."
 sudo pacman -Syy
+
+info_print "Installing AUR helper (paru-bin)"
 mkdir AUR
 cd AUR
 git clone https://aur.archlinux.org/paru-bin.git
 cd paru-bin
 makepkg -sic
+clear
 
 # Enable booting from Snapshots in GRUB Menu
+info_print "Enabling booting from GRUB Menu snapshots..."
 paru -Sa --noconfirm snap-pac-grub
 sudo grub-mkconfig -o /boot/grub/grub.cfg
+clear
 
 # Create base configuration snapshot
-info_print "About to take Base System Configuration..."
+info_print "Taking a snapshot: Base System Configuration..."
 sudo snapper -v -c root create -t single -d "*** Base System Configuration ***"
-read -n 1 -s -r -p "Press any key to continue..."
 
 # Enable & Start periodic execution of btrfs scrub
+info_print "Enable & Start Periodic execution of btrfs scrub..."
 output=$(sudo systemd-escape --template btrfs-scrub@.timer --path /dev/disk/by-uuid/$root_uuid)
 sudo systemctl enable $output
 sudo systemctl start $output
+clear
 
 # Enable and Start the timeline snapshots timer
+info_print "Enable & Start timeline snapshots timer..."
 sudo systemctl enable snapper-timeline.timer
 sudo systemctl start snapper-timeline.timer
+clear
 
 # Enable and Start  the timeline cleanup timer
+info_print "Enable & Start timeline snapshots cleanup timer..."
 sudo systemctl enable snapper-cleanup.timer
 sudo systemctl start snapper-cleanup.timer
-
-input_print "Press any key to continue..."
-read -n 1 -s -r 
 clear
 
 # Edit snapper configuration file"
-info_print "About to move snapper configs from root to home..."
+info_print "Editing snapper configuration file..."
 sudo mv /etc/snapper/configs/root .
-if [ -f root ]; then info_print "config exists on home"; else info_print "Fails!"; fi
-info_print "Showing you snapper root config attributes..."
-ls -al | grep root
-read -n 1 -s -r -p "Press any key to continue..."
-info_print "Showing you snapper root config before editing..."
-read -n 1 -s -r -p "Press any key to continue..."
-cat root | less
-
-input_print "Do you wish to edit root attributes?[y/n]: "
-read -r wish
-if [ "$wish"=="y" ] 
-	then sudo chown $USER:$USER root
-fi
-info_print "About to edit snapper root configs via sed...3 seconds..."
-sleep 3
 sed -i 's|QGROUP=""|QGROUP="1/0"|' root
 sed -i 's|NUMBER_LIMIT="50"|NUMBER_LIMIT="10-35"|' root
 sed -i 's|NUMBER_LIMIT_IMPORTANT="50"|NUMBER_LIMIT_IMPORTANT="15-25"|' root
@@ -129,16 +121,13 @@ sed -i 's|TIMELINE_LIMIT_DAILY="10"|TIMELINE_LIMIT_DAILY="5"|' root
 sed -i 's|TIMELINE_LIMIT_WEEKLY="0"|TIMELINE_LIMIT_WEEKLY="2"|' root
 sed -i 's|TIMELINE_LIMIT_MONTHLY="10"|TIMELINE_LIMIT_MONTHLY="3"|' root
 sed -i 's|TIMELINE_LIMIT_YEARLY="10"|TIMELINE_LIMIT_YEARLY="0"|' root
-
-info_print "Showing EDITED snapper configs in home...in 3 seconds"
-sleep 3
-cat root | less
-info_print "About to move snapper configs back to root...in 3 seconds"
-sleep 3
 sudo mv root /etc/snapper/configs/
-info_print "Confirm move works by cat'ng from root...in 3 seconds"
-sleep 3
-cat /etc/snapper/configs/root | less
+info_print "Updating GRUB config..."
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 clear
+info_print "Post-install configuration is now completed!"
+info_print "You may now reboot..."
+input_print "Press any key to continue..."
+read -n 1 -s -r
+exit
 

@@ -46,7 +46,7 @@ info_print "Welcome to easy-arch, a script made in order to simplify the process
 ## Setting up keyboard layout.
 until keyboard_selector; do : ; done
 
-## Check network connection
+## Check internet connection
 check_internet
 
 ## Update pacman mirrors
@@ -55,9 +55,9 @@ update_mirrors
 ## Edit pacman.conf
 edit_pacman
 
-## Synchronize Arch Repos
-info_print "Synchronizing pacman repositories..."
-pacman -Syy &>/dev/null
+## Synchronize Pacman Repos
+info_print "Synchronizing Pacman repositories..."
+pacman -Syy 
 
 ## Set timedatectl
 info_print "Setting timedatectl..."
@@ -87,7 +87,7 @@ clear
 until kernel_selector; do : ; done
 clear
 
-## User choses the network.
+## User choses the network utilities.
 until network_selector; do : ; done
 clear
 
@@ -126,7 +126,7 @@ clear
 
 ##################### Mount and Create Mountpoints for Subvolume #################
 mount_and_create_mountpoints
-pacman -S --noconfirm tree >/dev/null
+pacman -S --noconfirm tree
 clear
 
 info_print "The following mountpoints were just created:"
@@ -224,19 +224,23 @@ fi
 input_print "Press any key to continue..."
 read -n 1 -s -r
 info_print ""
+clear
 
 #### Main chroot section
 info_print "Settings inside arch-chroot..."
 arch-chroot /mnt /bin/bash -e <<EOF
 	# 1. Setting up timezone
+	echo "Setting up timezone..."
 	ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc/localtime &>/dev/null
 
 	pacman -Syy
 
 	# 3. Synchronize clocks
+	echo "Synchronizing hwclock to systohc..."
 	 hwclock --systohc
 
 	# 4. Initialize Snapper
+	echo "Initializing Snapper..."
 	umount /.snapshots
 	rm -r /.snapshots
 	snapper --no-dbus -c root create-config /
@@ -249,13 +253,12 @@ arch-chroot /mnt /bin/bash -e <<EOF
 	locale-gen
 	
 	# 5. Installing GRUB.
-	echo "Inside chroot: Installing GRUB..."
+	echo "Installing GRUB..."
     grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=ARCH-B --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt btrfs"
 	grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
 	
 	exit
 EOF
-info_print "Exiting from chroot..."
 
 # Copy post-install script (including related files, if any)
 sudo cp post-install.sh /mnt/home/$username/
@@ -264,10 +267,11 @@ sudo cp cosmetics /mnt/home/$username/
 sudo umount -a &>/dev/null
 clear
 info_print "                   Installation Complete!"
-info_print "But, you must still run the post-install.sh script after reboot!"
-info_print "After reboot, Log back in as your username (not root!)."
-info_print "Once logged in, run the script: ./post-install.sh"
-info_print "NOTE: You will be greeted with a black getty1. Desktop Environments like "
+info_print "                 Type reboot and press Enter."
+info_print "IMPORTANT! After reboot, you must still run the post-install.sh script."
+info_print "1. Log back in as your username (not root!)."
+info_print "2. Run the script: ./post-install.sh"
+info_print "3. NOTE: You will be greeted with a black getty1. Graphical environments like "
 info_print "      GNOME, KDE or WM's etc are not yet installed!" 
 info_print ""
 info_print ""
