@@ -66,6 +66,8 @@ clear
  
 ## Choosing the target disk for installation
 choose_install_disk
+input_print "Press any key to continue..."
+read -n 1 -s -r
 clear
 
 ## Installation and Partition Scheme
