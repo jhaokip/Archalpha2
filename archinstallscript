@@ -134,7 +134,7 @@ clear
 info_print "The following mountpoints were just created:"
 tree -L 3 /mnt
 input_print "Press any key to continue..."
-read n -1 -s -r 
+read -n 1 -s -r 
 info_print ""
 clear
 
@@ -144,7 +144,7 @@ clear
 info_print "Verify partitions, formatting and mountpoints!"
 sudo lsblk $DISK -o NAME,SIZE,FSTYPE,MOUNTPOINTS
 input_print "Press any key to continue..."
-read n -1 -s -r 
+read -n 1 -s -r 
 info_print ""
 clear
 
@@ -152,7 +152,7 @@ clear
 ## Install base packages  
 #
  
-Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr grub-btrfs os-prober snapper snap-pac dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
+Base_Packages="base $kernel $kernel-headers $microcode linux-firmware base-devel btrfs-progs ntfs-3g nano vim tree grub grub-btrfs efibootmgr os-prober snapper snap-pac dialog mtools dosfstools reflector git man-db man-pages texinfo xdg-utils xdg-user-dirs" 
 pacstrap /mnt $Base_Packages
 clear
 info_print "Base packages installation done..."
